@@ -8,7 +8,7 @@ Este repositorio contiene la estructura base del proyecto, configurada para faci
 
 ---
 
-📋 Tablero SCRUM (Gestión del Proyecto)
+## 📋 Tablero SCRUM (Gestión del Proyecto)
 
 Puedes visualizar el seguimiento de tareas, historias de usuario y avances del proyecto en nuestro tablero Scrum en GitHub Projects:
 
@@ -47,7 +47,7 @@ Puedes visualizar el seguimiento de tareas, historias de usuario y avances del p
 /utils          # Funciones auxiliares
 /src            # Código fuente principal
 .gitignore      # Archivos y carpetas excluidas del control de versiones
-app.js        # Punto de entrada del CLI
+app.js          # Punto de entrada del CLI
 ```
 
 ---
@@ -69,6 +69,19 @@ app.js        # Punto de entrada del CLI
 - Script `start` en `package.json` para facilitar la ejecución.
 - Estilizado de mensajes en consola con `chalk`.
 - Convenciones de commits siguiendo el formato `feat:`, `fix:`, `docs:`, etc.
+
+---
+
+### 🧱 Patrones de Diseño Aplicados
+
+Este proyecto implementará los siguientes patrones de diseño para mejorar la escalabilidad, modularidad y mantenibilidad del código:
+
+- **Factory Pattern**: Para la creación de objetos reutilizables como instancias de entidades o servicios, permitiendo la encapsulación de lógica de construcción.
+- **Repository Pattern**: Para abstraer la lógica de acceso a datos y desacoplar la persistencia (MongoDB) de la lógica de negocio.
+- **Command Pattern**: Para encapsular operaciones del CLI como comandos individuales, facilitando la extensión y organización de funcionalidades.
+- **Singleton Pattern** *(opcional)*: Para instancias únicas como configuración global o conexión a la base de datos.
+
+Cada patrón será aplicado de forma coherente con los principios SOLID y documentado en su respectiva sección dentro del proyecto.
 
 ---
 
