@@ -1,0 +1,112 @@
+El motivo de este arichvo es solo con carcter de consulta 
+
+maximas , reglas generales para el desarrollo
+
+    importante : Recordar ignorar este archivo cuando se haga el merge a main
+
+    funcionalidad por arriba de belleza
+
+    trabajar con atlas:
+        crear un archivo .env y agreagar la siguiente linea de codigo
+        
+        MONGO_URI="mongodb+srv://davstudios95:A05162738a%2A@clusterpruebas.c61iwun.mongodb.net/"
+
+    librerias a usar 
+        - dotenv
+        - inquirer
+        - mongodb
+
+Estructura del menu
+
+tipologia de objetos: Estructura de la base de datos , collecciones y objetos que reciben
+
+base de datos 
+    gestor_de_portafolio
+
+colleciones 
+    clientes //collecion para registrar clientes con los datos necesario
+        {
+            nombre : "string" // nombre completo de la persona
+            cedula : "string" // cedula
+            telefono: "string" // numero de celular
+            correo: "string" // correo electronico del cliente
+            fecha: "ISODate()" // fecha de creacion del cliente
+            propuestas:[] //array vacio que contiene los id referenciados de los distintos proyectos
+            proyectos:[] // array vacio con los id de los proyectos asociados
+            contratos:[] // arra vacio con los contratos asociados al cliente
+            deuda: "int" //monto que debe el cliente
+        }
+
+    propuestas
+        {
+            descripción : "string" //Espacio para poder escribir todo el enunciado
+            precio: "int" //Precio de la propuesta
+            plazos: [ISODate(), ISODate] //"fecha-inicial" , "fecha-final"
+            estado: enum[pendiente, aceptada, rechazada]. //opciones de la propuesta , el estado inicial de toda propuesta es pendiente 
+            clentes:[] //array vacio de los clientes a los cuales va dirigida la propuesta , las misma debe tener los datos del cliente embebidos
+        }
+    
+    *ojo* descripción debe de contar con un formato para registrar el dato en su funcion correspondiente
+    
+    proyectos 
+        {
+            propuestas[]: //array vacio para embeber la o las propuestas
+            
+            estados: enum( activo, pausado, finalizado, cancelado),
+            contrato :[] //arreglo vacio que va a ser un embebido del contrato
+
+        }
+
+
+    contratos
+        {
+
+        }
+
+funcion menu() // Debe estar en app.js y desplegar un menu con opciones que redirijan a los metodos o funciones a implementar de esta manera se modulariza el codigo
+    Gestionar clientes
+        Listar clientes:
+            listarClientes():
+        Crear un cliente:
+            crearCliente()
+        actualizar datos de un cliente:
+            actualizarCliente():
+        eliminar un cliente()
+            eliminarCliente():
+        Asociar cliente a proyectos y propuestas
+            integrarCliente():
+
+    gestion de propuestas:
+        crear de propuestas:
+            porpuestas()
+            
+            exportarPdf()
+    
+    gestion de proyectos:
+        menu de proyectos
+            Listar proyectos:
+                listarProyectos():
+            Crear un cliente:
+                crearProyecto()
+            actualizar datos de un cliente:
+                actualizarProyecto():
+            eliminar un cliente()
+                eliminarProyecto():
+        
+        generar un proyecto a paratir de los proyectos aceptados
+            exportarPdf()
+
+    contratos
+        listar contratos
+            listarContratos()
+        crear contrato a partir de proyectos aprobados y en estado activo
+            añadirContrato()
+
+    gestion financiera
+        //consultas
+        registros de ingresos y egresos a proyectos.
+        calculo de balance liente o por fecha
+        
+
+    
+
