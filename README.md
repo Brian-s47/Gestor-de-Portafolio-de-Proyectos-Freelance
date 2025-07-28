@@ -8,6 +8,13 @@ Este repositorio contiene la estructura base del proyecto, configurada para faci
 
 ---
 
+📋 Tablero SCRUM (Gestión del Proyecto)
+
+Puedes visualizar el seguimiento de tareas, historias de usuario y avances del proyecto en nuestro tablero Scrum en GitHub Projects:
+
+🔗 [Acceder al tablero del proyecto](https://github.com/users/Brian-s47/projects/19/views/1)
+
+
 ## ⚙️ Instalación y Ejecución
 
 1. Clona el repositorio:
