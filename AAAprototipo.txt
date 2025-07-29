@@ -1,0 +1,315 @@
+El motivo de este arichvo es solo con carcter de consulta 
+
+maximas , reglas generales para el desarrollo
+
+    importante : Recordar ignorar este archivo cuando se haga el merge a main
+
+    funcionalidad por arriba de belleza
+
+    comentar cada funcion que hace para que sirve que recibe que hace cada constante 
+
+    funciones se declaran primera minuscula segunda mayuscula ejemploFuncion(){}
+    clases de declaran en singular y con mayuscula class Ejemplo
+
+    trabajar con atlas:
+        crear un archivo .env y agreagar la siguiente linea de codigo
+        
+        MONGO_URI="mongodb+srv://davstudios95:A05162738a%2A@clusterpruebas.c61iwun.mongodb.net/"
+
+    nombre de la base de datos: 
+        gestordeproyectos
+
+    collecciones
+        clientes
+        estadoDeCuenta
+        propuestas
+        proyectos
+
+    librerias a usar 
+        - dotenv
+        - inquirer
+        - mongodb
+
+Estructura del menu
+
+tipologia de objetos: Estructura de la base de datos , collecciones y objetos que reciben
+
+base de datos 
+    gestor_de_portafolio
+
+colleciones 
+    clientes //collecion para registrar clientes con los datos necesario
+        {
+            nombre : "string" // nombre completo de la persona
+            cedula : "string" // cedula
+            telefono: "string" // numero de celular
+            correo: "string" // correo electronico del cliente
+            fecha: "ISODate()" // fecha de creacion del cliente
+            propuestas:[] //array vacio que contiene los id *referenciados* de las distintas propuestas
+            proyectos:[] // array vacio con los id de los proyectos asociados
+            //contratos:[] // array vacio con los contratos asociados al cliente
+            pagos: referencias pagos o abonos
+            dedua: valor todal adeudado por el cliente en la totalidad de los proyectos int
+            estado: true //true o false 
+        }
+
+    propuestas
+        {
+            nombrepropuesta:
+            descripción : "string" //Espacio para poder escribir todo el enunciado (recorda como quiero para)
+            precio: "int" //Precio de la propuesta
+            plazos: [ISODate(), ISODate] //"fecha-inicial" , "fecha-final"
+            estado: enum[pendiente, aceptada, rechazada]. //opciones de la propuesta , el estado inicial de toda propuesta es pendiente 
+            clentes:[] //array vacio de los clientes a los cuales va dirigida la propuesta , las misma debe tener los datos del cliente *embebidos*
+        }
+    
+    *ojo* descripción debe de contar con un formato para registrar el dato en su funcion correspondiente
+    
+    proyectos 
+        {   
+            nombredelproyecto: "sting"// nombre del proyecto
+            descripcion[]: //toda la descripcion del proyecto con un formato especificado (en la funcion)(como quiero para)
+            propuesta: //{} vacio para *embeber* la propuesta
+            entregables[
+                {
+                    descripcion:"string" // breve resumen del entregrable
+                    fechadeentrega: ISODate, //fecha en la que se entrega el proyecto
+                    estado enum (pendiente, entregado, aprobado, rechazado). //el estado inicial siempre debe ser pendiente.
+                    link: "string" o "null" //depende del estado
+                },
+                {...}
+            ]: //array vacio para introducir los entregables que son links de drive que contienen archios pdf con todas las instrucciones(debatible).
+            
+            estados: enum( activo, pausado, finalizado, cancelado),// se cancela cuando el contrato lo decida
+            contratos:
+                    {
+                        condiciones[] //array de stings
+                        fecha inicio:  //fecha de inicio del proyecto
+                        fecha fin : // fecha de finalizacion del proyecto
+                        presupuestoInicial: // plata
+                        cliente : "string" //cliente embebido 
+                        desarrollador: // nombre del desarrollador 
+                    }
+
+            //arreglo vacio que va a ser un embebido del contrato , cada proyecto tiene un solo contrato
+            cliente: referenciado
+            estadoDeCuenta : referenciado
+            
+        }
+
+    
+
+    //posible problema para el yo del futuro, acutualizar dos colecciones al vez
+
+    estadoDeCuenta: [
+        facturas{
+            id: unique
+            IdCLiente: referenciadp
+            IdProyecto: referenciado
+            deudaActual: valor inicial del proyecto - total de abonos por cliente
+            valorDisponible: suma de abonos - costos
+            abonos: [{
+                id: unique
+                nombre: descripcion del abono
+                fecha: fecha
+                valor: int
+            }]
+            costos: [{
+                id: unique
+                nombre: descripcion del abono
+                fecha: fecha 
+                valor: int 
+            }]
+        },
+    ]
+
+
+            
+            
+
+classes
+
+class Cliente{} para crear objetos de tipo cliente
+
+funcion menu() // Debe estar en app.js y desplegar un menu con opciones que redirijan a los metodos o funciones a implementar de esta manera se modulariza el codigo
+
+//buscar mas abajo cada funcion por su nombre para ver para que sirve
+
+    Gestionar clientes
+        Listar clientes:
+            listarClientes():
+        Crear un cliente:
+            crearCliente():
+        actualizar datos de un cliente:
+            actualizarCliente():
+        eliminar un cliente()
+            eliminarCliente():
+        
+       
+    gestion de propuestas:
+        crear de propuestas:
+            crearPropuestas(){
+                integrarCliente():
+                    //debe de asignar almenos a un cliente
+                    // Asociar cliente a propuestas
+                }
+        
+        cambiar estado de la propuesta 
+            cambiarEstado():
+            
+        modicar propuesta
+
+        eliminar propuesta 
+
+            
+            exportarPdf()//funcilanlidad a futuro no prioritaria
+    
+    gestion de proyectos:
+        menu de proyectos
+            Listar proyectos:
+                listarProyectos():
+            Crear un proyecto:
+                crearProyecto()
+            actualizar estado del proyecto :
+                actualizarProyecto():
+            eliminar un proyecto():
+                eliminarProyecto():
+        
+        generar un proyecto a paratir de los proyectos aceptados
+            exportarPdf()
+
+    contratos
+        listar contratos
+            listarContratos()
+        crear contrato a partir de proyectos aprobados y en estado activo
+            añadirContrato()
+
+        // Este consta del regitro de ingresos y egresos, todo lo conserniente con Dinero
+    6. Gestión financiera (Menu)
+        -> Crear Registro (Factura)
+            Registros Nuevos (Menu)
+            -> Crear registro de Ingreso (Pagos realizados por clientes)
+                                        // Se despliega solicitud de datos de registro (Promp)
+                                        * Seleccione el proyecto al cual desea crear un registro de Ingresos:
+Metodo estatico de la clase Proyecto.<-getProyectosActivos(); // Se mostraran todos los proyectos Activos para crear registro de pagos: Nombre Proyecto - Nombre Representante (tambien podria llamarse Cliente)
+                                        * Ingrese el nombre del usuario que realizara el registro
+                                        // Input de nombre strig que no reciba simbolos ni numero y no puede estar vacio
+                                        * Ingrese el valor que desea pagar al proyecto:
+                                        // Ingresar un Valor numerico entero superior a cero y no puede ser vacio
+                                        * Ingrese una descripcion del concepto por el cual realizara el pago (Ejemplo, pago cuota proyecto, pago trabajo extra, pago extraordinario)
+                                        // Ingresar un Valor numerico entero superior a cero y no puede ser vacio
+                                        * Porfavor confirme que el valor ingresado sea Correcto.... Y/N (Presiones Y para confirmar o N para cancelar)
+                                        * La factura se ingreso correctamente por un valor de ${valorPagar} al poryecto ${proyectoSeleccionado.nombre}
+                                        ** Presione Enter para continuar -> Volver al menu anterior
+            -> Crear registro de Egresos (Gastos asociados a un proyecto como: Gastos de programacion, Contrato de terceros...)
+                                        // Se despliega solicitud de datos de registro (Promp)
+                                        * Seleccione el proyecto al cual desea crear un registro de Egreso:
+Metodo estatico de la clase Proyecto.<-getProyectosActivos(); // Se mostraran todos los proyectos Activos para crear registro de pagos: Nombre Proyecto - Nombre Representante (tambien podria llamarse Cliente) - Valor actual del presupuesto total  - Valor actual disponible de presupuesto
+                                        * Ingrese el nombre del usuario que realizara el registro
+                                        // Input de nombre strig que no reciba simbolos ni numero y no puede estar vacio
+                                        * Ingrese el valor que desea descontar del presupuesto: 
+                                        // Ingresar un Valor numerico entero superior a cero y no puede ser vacio
+                                        * Ingrese una descripcion del concepto por el cual realizara el Egreso (Ejemplo, Pago a developer horas trabajadas, pago a tercero por trabajo extra, gastos de ofimatica requerida)
+                                        // Ingresar un Valor numerico entero superior a cero y no puede ser vacio
+                                        * Porfavor confirme que el valor ingresado sea Correcto.... Y/N (Presiones Y para confirmar o N para cancelar)
+                                        * La factura se ingreso correctamente por un valor de ${valorRestar} al poryecto ${proyectoSeleccionado.nombre}
+                                        ** Presione Enter para continuar -> Volver al menu anterior
+        -> Listar Registros (Menu)
+            -> Listar Registros de Ingresos
+Metodo estatico de la clase Registro.<-getRegistrosIngresos()  
+                                    // Se mostrara a modo de tabla con Fecha-Proyecto-Representante-Nombre del registro-valor-Descripcion
+            -> Listar Registros de Egresos
+Metodo estatico de la clase Registro.<-getRegistrosEgresos()  
+                                    // Se mostrara a modo de tabla con Fecha-Proyecto-Representante-Nombre del registro-valor-Descripcion
+        -> Actualizar Registro (menu)
+                -> Seleccione el tipo de registro que desea Actualizar:
+                    * Registro de Ingreso:
+                        getRegistrosIngresos()
+                        * Seleccione el tipo de actualizacion que desea hacer:
+                        -> Actualizar Nombre de registro
+                        -> Actualizar Descripcion del registro
+                    * Registro de Egreso:
+                        getRegistrosEgresos()
+                        * Seleccione el tipo de actualizacion que desea hacer:
+                        -> Actualizar Nombre de registro
+                        -> Actualizar Descripcion del registro
+        -> Eliminar Registro (Debatir si es necesario, Los registros de dinero no deben nunca borrarse)
+                    -> Seleccione el tipo de registro que desea Actualizar:
+                    * Registro de Ingreso:
+                        getRegistrosIngresos()
+                        * Seleccione el registro que desea Eliminar:
+                        deleteRegistro() (metodo estatico de Registro.)
+                    * Registro de Egreso:
+                        getRegistrosEgresos()
+                        * Seleccione el registro que desea Eliminar:
+                        deleteRegistro() (metodo estatico de Registro.)
+
+    
+async function listarClientes(){
+    //devuelve un table/array/log con la lista de todos los clientes y sus datos , asi como tambien los proyectos a los cuales esta asociado 
+    //en caso de que no hayan clientes mostrar "No hay clientes registrados de momento"
+}
+
+
+async function crearCliente(){
+    //debe registrar en mongodb el cliente con los datos del siguiente objeto :
+    {
+        nombre : "string" // nombre completo de la persona
+        cedula : "string" // cedula
+        telefono: "string" // numero de celular
+        correo: "string" // correo electronico del cliente
+        fecha: "ISODate()" // fecha de creacion del cliente
+      
+        propuestas:[] //array vacio que contiene los id *referenciados* de las distintas propuestas, si no tiene retornar un array vacio
+        proyectos:[] // array vacio con los id de los proyectos asociados, 
+        contratos:[] // array vacio con los contratos asociados al cliente
+        
+        deuda: "int" //monto que debe el cliente con forme a los proyectos asociados
+    }
+    //debe validar los tipos de datos a recibir, no pueden quedar campos vacios amenos que sean los arrays 
+    //usar insertOne.({})
+        
+}
+
+
+async function actualizarCliente(){
+    //devuelve una lista de clientes, luego los permite seleccionar para editar posteriormente
+    //permite poner denuevo el estado a true
+    //no deberia dejar editar los campos de propuesta , proyectos , contratos ni deuda
+
+}
+
+
+async function eliminarCliente(){
+    //cambia el estado del cliente de true a false , si desea elminiarlo , eliminelo desde la base de datos
+}
+
+// debatir si debe dejarse crear la propuesta o no si hay o no clientes
+async function crearPropuestas(){
+
+    //permite ingresar los datos para este objeto 
+    
+    {
+        descripción : "string" //Espacio para poder escribir todo el enunciado (recorda como quiero para)
+        precio: "int" //Precio de la propuesta
+        plazos: [ISODate(), ISODate] //"fecha-inicial" , "fecha-final"
+        estado: enum[pendiente, aceptada, rechazada]. //opciones de la propuesta , el estado inicial de toda propuesta es pendiente 
+        clentes:[
+            integrarCliente():
+        ] //array vacio de los clientes a los cuales va dirigida la propuesta , las misma debe tener los datos del cliente *embebidos*
+    }
+
+}
+
+async function integrarCliente(){
+    //debe listar los clientes con estado true y dispobibles y añadir uno o varios
+    //funcionalidad extra, permitir hacer una busqueda ingresando la cedula o algo que permita referenciar directamente al cliente 
+    //Retornar el cliente seleccionado y embeberlo
+    //debe añadir el objectId de la propuesta a la collecion del cliente seleccionado en el array propuesta
+    
+}
+
+
+async funcion cambiarEstado(){
+
+}
