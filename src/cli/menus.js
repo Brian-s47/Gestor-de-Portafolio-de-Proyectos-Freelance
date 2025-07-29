@@ -1,5 +1,5 @@
 // Zona de importacion de librerias
-import inquirer from 'inquirer'; //  Para interaccion con el usuario
+import inquirer from 'inquirer' //  Para interaccion con el usuario
 import chalk from 'chalk' // Para dar colores a los mensajes y opciones
 import boxen from 'boxen' // Para encerrar los menus en cajas 
 
@@ -181,6 +181,36 @@ async function gestorProyectos() {
   return opcion;
 }
 
+// Menu Administrador
+async function gestorCliente() {
+  console.clear() // Borrar consola para mejor visualizacion
+  const titulo = chalk.bold.cyan('📋 Menu Cliente -> Gestor de Portafolio de Proyectos Freelance') 
+  const linea = chalk.gray('────────────────────────────────────────────')
+  console.log(boxen(titulo, {
+    padding: 1,
+    margin: 1,
+    borderStyle: 'round',
+    borderColor: 'green',
+    align: 'center'
+  }))
+  console.log(linea)
+  const { opcion } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'opcion',
+      message: 'Selecciona una opción:',
+      choices: [
+        { name: chalk.green('1. Ver Proyectos'), value: '1' },
+        { name: chalk.blue('2. Ver propuestas'), value: '2' },
+        { name: chalk.yellow('3. Ver Estado financiero'), value: '3' },
+        { name: chalk.white('4. Ver datos personales'), value: '4' },
+        { name: chalk.gray('🛠️ 5. Salir del sistema de gestion: ""Menu Principal Gestor" 🛠️'), value: '5' }
+      ]
+    }
+  ]);
+  return opcion;
+}
+
 // Funcion para precionar tecla para continuar
 async function esperarTecla() {
   await inquirer.prompt([
@@ -192,4 +222,4 @@ async function esperarTecla() {
   ]);
 }
 
-export { esperarTecla, menuPrincipal, gestorAdministrador, gestorClientes, gestorContratos, gestorFinanzas, gestorPropuestas, gestorProyectos };
+export { esperarTecla, menuPrincipal, gestorAdministrador, gestorClientes, gestorFinanzas, gestorPropuestas, gestorProyectos, gestorCliente };

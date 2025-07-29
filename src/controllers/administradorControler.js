@@ -6,7 +6,6 @@ import { gestorAdministrador, esperarTecla}  from '../cli/menus.js';
 import { controlerClientes } from './administrador/clientesControler.js';
 import { controlerPropuestas } from './administrador/controlerPropuestas.js';
 import { controlerProyectos } from './administrador/controlerProyectos.js';
-import { controlerContratos } from './administrador/controlerContratos.js';
 import { controlerFinanzas } from './administrador/controlerFinanzas.js'
 
 // Funciones generales
@@ -40,7 +39,7 @@ async function gestionAdministrador() {
         case '5':
             console.log('🛠️ Esta volviendo al menu anterior "Menu Principal Gestor" 🛠️');
             await esperarTecla()
-            exit;
+            salir = true;
         }
     }
 }
