@@ -33,16 +33,11 @@ async function gestionAdministrador() {
             await controlerProyectos();
             break;
         case '4':
-            console.log('Se iniciara Menu de: Gestion de Contratos')
-            await esperarTecla()
-            await controlerContratos();
-        break;
-        case '5':
             console.log('Se iniciara Menu de: Gestion de Finanzas')
             await esperarTecla()
             await controlerFinanzas();
         break;
-        case '6':
+        case '5':
             console.log('🛠️ Esta volviendo al menu anterior "Menu Principal Gestor" 🛠️');
             await esperarTecla()
             exit;
