@@ -16,6 +16,15 @@ maximas , reglas generales para el desarrollo
         
         MONGO_URI="mongodb+srv://davstudios95:A05162738a%2A@clusterpruebas.c61iwun.mongodb.net/"
 
+    nombre de la base de datos: 
+        gestordeproyectos
+
+    collecciones
+        clientes
+        estadoDeCuenta
+        propuestas
+        proyectos
+
     librerias a usar 
         - dotenv
         - inquirer
