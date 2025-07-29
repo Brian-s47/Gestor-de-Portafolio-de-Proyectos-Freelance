@@ -6,7 +6,7 @@ maximas , reglas generales para el desarrollo
 
     funcionalidad por arriba de belleza
 
-    comentar cada funcion que hacer para que sirve que recibe que hace cada constante 
+    comentar cada funcion que hace para que sirve que recibe que hace cada constante 
 
     funciones se declaran primera minuscula segunda mayuscula ejemploFuncion(){}
     clases de declaran en singular y con mayuscula class Ejemplo
@@ -38,13 +38,15 @@ colleciones
             fecha: "ISODate()" // fecha de creacion del cliente
             propuestas:[] //array vacio que contiene los id *referenciados* de las distintas propuestas
             proyectos:[] // array vacio con los id de los proyectos asociados
-            contratos:[] // array vacio con los contratos asociados al cliente
-            deuda: "int" //monto que debe el cliente con forme al contrato (debatible)
+            //contratos:[] // array vacio con los contratos asociados al cliente
+            pagos: referencias pagos o abonos
+            dedua: valor todal adeudado por el cliente en la totalidad de los proyectos int
             estado: true //true o false 
         }
 
     propuestas
         {
+            nombrepropuesta:
             descripción : "string" //Espacio para poder escribir todo el enunciado (recorda como quiero para)
             precio: "int" //Precio de la propuesta
             plazos: [ISODate(), ISODate] //"fecha-inicial" , "fecha-final"
@@ -58,7 +60,7 @@ colleciones
         {   
             nombredelproyecto: "sting"// nombre del proyecto
             descripcion[]: //toda la descripcion del proyecto con un formato especificado (en la funcion)(como quiero para)
-            propuestas[]: //array vacio para *embeber* la o las propuestas
+            propuesta: //{} vacio para *embeber* la propuesta
             entregables[
                 {
                     descripcion:"string" // breve resumen del entregrable
@@ -70,50 +72,51 @@ colleciones
             ]: //array vacio para introducir los entregables que son links de drive que contienen archios pdf con todas las instrucciones(debatible).
             
             estados: enum( activo, pausado, finalizado, cancelado),// se cancela cuando el contrato lo decida
-            contrato :[
-                {
-                    condiciones[] //array de stings
-                    fecha inicio:  //fecha de inicio del proyecto
-                    fecha fin : // fecha de finalizacion del proyecto
-                    deuda: // plata
-                    cliente : "string" //cliente embebido 
-                    desarrollador: // nombre del desarrollador 
-                } 
+            contratos:
+                    {
+                        condiciones[] //array de stings
+                        fecha inicio:  //fecha de inicio del proyecto
+                        fecha fin : // fecha de finalizacion del proyecto
+                        presupuestoInicial: // plata
+                        cliente : "string" //cliente embebido 
+                        desarrollador: // nombre del desarrollador 
+                    }
 
-            ] //arreglo vacio que va a ser un embebido del contrato , cada proyecto tiene un solo contrato, puede estar sujeto cambios
-            cliente:[] //array vacio con el cliente embebidos
+            //arreglo vacio que va a ser un embebido del contrato , cada proyecto tiene un solo contrato
+            cliente: referenciado
+            estadoDeCuenta : referenciado
             
         }
 
-    contratos
-        {
-            condiciones[] //array de stings
-            fecha inicio:  //fecha de inicio del proyecto
-            fecha fin : // fecha de finalizacion del proyecto
-            presupuesto: // plata
-            cliente : "string" //cliente embebido 
-            desarrollador: // nombre del desarrollador 
-        }
+    
 
     //posible problema para el yo del futuro, acutualizar dos colecciones al vez
-    facturacion:
-            deudaporcliente:[] //debatible
-            pagosdeclientes:[
-                {
-                    nombre:  "string" 
-                    cedula: "sting" //
-                    monto: "int" // plata
-                    proyectoAsocido: (objectId)//referenciado
-                    fecha : ISODate//fecha de registro de facturas
-                },{...}
 
-            ] //embebido de los pagos de los clientes 
+    estadoDeCuenta: [
+        facturas{
+            id: unique
+            IdCLiente: referenciadp
+            IdProyecto: referenciado
+            deudaActual: valor inicial del proyecto - total de abonos por cliente
+            valorDisponible: suma de abonos - costos
+            abonos: [{
+                id: unique
+                nombre: descripcion del abono
+                fecha: fecha
+                valor: int
+            }]
+            costos: [{
+                id: unique
+                nombre: descripcion del abono
+                fecha: fecha 
+                valor: int 
+            }]
+        },
+    ]
+
 
             
             
-            
-            
-            //Transacciones para registrar pagos, evitar duplicidad o pérdidas de consistencia.
 
 classes
 
