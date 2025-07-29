@@ -6,6 +6,11 @@ maximas , reglas generales para el desarrollo
 
     funcionalidad por arriba de belleza
 
+    comentar cada funcion que hacer para que sirve que recibe que hace cada constante 
+
+    funciones se declaran primera minuscula segunda mayuscula ejemploFuncion(){}
+    clases de declaran en singular y con mayuscula class Ejemplo
+
     trabajar con atlas:
         crear un archivo .env y agreagar la siguiente linea de codigo
         
@@ -111,11 +116,14 @@ colleciones
 
 
 funcion menu() // Debe estar en app.js y desplegar un menu con opciones que redirijan a los metodos o funciones a implementar de esta manera se modulariza el codigo
+
+//buscar mas abajo cada funcion por su nombre para ver para que sirve
+
     Gestionar clientes
         Listar clientes:
             listarClientes():
         Crear un cliente:
-            crearCliente()
+            crearCliente():
         actualizar datos de un cliente:
             actualizarCliente():
         eliminar un cliente()
@@ -134,11 +142,11 @@ funcion menu() // Debe estar en app.js y desplegar un menu con opciones que redi
         menu de proyectos
             Listar proyectos:
                 listarProyectos():
-            Crear un cliente:
+            Crear un proyecto:
                 crearProyecto()
-            actualizar datos de un cliente:
+            actualizar estado del proyecto :
                 actualizarProyecto():
-            eliminar un cliente()
+            eliminar un proyecto():
                 eliminarProyecto():
         
         generar un proyecto a paratir de los proyectos aceptados
@@ -154,4 +162,33 @@ funcion menu() // Debe estar en app.js y desplegar un menu con opciones que redi
         crud de pagos
 
     
+async function listarClientes(){
+    //devuelve un table/array/log con la lista de todos los clientes y sus datos , asi como tambien los proyecros a los cuales esta asociado 
+    //en caso de que no hayan clientes mostrar "No hay clientes registrados de momento"
+}
 
+
+async function crearCliente(){
+    //debe registrar en mongodb el cliente con los datos siguiente objeto :
+    {
+        nombre : "string" // nombre completo de la persona
+        cedula : "string" // cedula
+        telefono: "string" // numero de celular
+        correo: "string" // correo electronico del cliente
+        fecha: "ISODate()" // fecha de creacion del cliente
+        propuestas:[] //array vacio que contiene los id *referenciados* de las distintas propuestas, si no tiene retornar un array vacio
+        proyectos:[] // array vacio con los id de los proyectos asociados, 
+        contratos:[] // array vacio con los contratos asociados al cliente
+        deuda: "int" //monto que debe el cliente con forme a los proyectos asociados
+    }
+    //debe validar los tipos de datos a recibir, no pueden quedar campos vacios amenos que sean los arrays 
+    //usar insertOne.({})
+    
+    
+}
+
+
+async function actualizarCliente(){
+    //devuelve una lista de clientes, luego los permite seleccionar para editar posteriormente
+    // no deberia dejar editar los campos de propuesta , proyectos , contratos
+}
