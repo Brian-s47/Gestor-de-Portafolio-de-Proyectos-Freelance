@@ -2,7 +2,7 @@
 
 // Zona de  importacion de modulos
 import {menuPrincipal, esperarTecla}  from './src/cli/menus.js';
-
+import {gestionAdministrador} from './src/controllers/administradorControler.js';
 
 // Codigo principal de ejecucion:
 
@@ -13,21 +13,22 @@ async function main() {
     const opcionPrincipal = await menuPrincipal();
     switch (opcionPrincipal) { 
       case '1':
-        console.log('Ejecutar validacion de Inicio de sesion para Administrador')
+        console.log('Ejecutar validacion de Inicio de sesion para Administrador');
         // Pondremos un condicional if si retorna correctamente el inicio de sesin redirije al menu correspondiente
         console.log('Menu de Gestion de Administrador(Developer)')
-        await esperarTecla()
+        await esperarTecla();
+        await gestionAdministrador();
         break;
       case '2':
         console.log('Ejecutar validacion de Inicio de sesion para cliente')
         // Pondremos un condicional if si retorna correctamente el inicio de sesin redirije al menu correspondiente
-        console.log('Menu de Gestion de Cliente')
-        await esperarTecla()
+        console.log('Menu de Gestion de Cliente');
+        await esperarTecla();
         break;
       case '3':
         salir = true;
         console.log('🚀 Esta saliendo del sistema Gestor de Portafoliom de Proyectos Freelance 🚀');
-        await esperarTecla()
+        await esperarTecla();
         exit;
     }
   }
