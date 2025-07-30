@@ -1,5 +1,6 @@
 // Zona de importacion de librerias
 import { ObjectId } from 'mongodb'; // Para obtener el id generado por MongoDB
+import conectarDB from '../config/db.js'; // Conexion con base de datos
 
 // Zona de importacion de modulos
 
@@ -19,7 +20,8 @@ class Propuesta {
 
     // Modificar datos de una propuesta
     static async modificarPropuesta(id, atributoCambiar, datoNuevo){
-        const db = await connection();
+
+        const db = await conectarDB();
         const coleccion = db.collection('propuestas');
         switch (atributoCambiar) { 
         case 'nombre':
@@ -71,7 +73,7 @@ class Propuesta {
 
     // Cambiar estado de propuesta
     static async cambiarEstadoPropuesta(id, nuevoEstado){
-        const db = await connection();
+        const db = await conectarDB();
         const coleccion = db.collection('propuestas');
         await coleccion.updateOne(
         { _id: new ObjectId(id) }, 
@@ -81,22 +83,22 @@ class Propuesta {
     // Geters
     // Obtener las propuestas
     static async getPropuestas(){
-        const db = await connection(); // Conectamos con la BD y la traemos
+        const db = await conectarDB(); // Conectamos con la BD y la traemos
         const coleccion = db.collection('propuestas'); // Traemos la coleccion de la BD
         const propuestas = await coleccion.find().toArray(); // traemos todas las propuestas y los comvertimos en Array
         return propuestas; // Devolvemos el array obtenido
     };
     // Obtener una propuesta por Id
     static async getPropuestaId(id){
-        const db = await connection();
+        const db = await conectarDB();
         const coleccion = db.collection('propuestas');
         return await coleccion.findOne({ _id: new ObjectId(id) });
     };  
     
     // Setters
     static async setPropuesta(propuesta){
-        const db = await connection();
-        const coleccion = db.collection('propuestas');
+        const db = await conectarDB();
+        const coleccion = db.db('propuestas');
         try {
             const resultado = await coleccion.insertOne(propuesta);
             console.log('✅ Propuesta guardada en la base de datos con Nombre:', propuesta.nombre);

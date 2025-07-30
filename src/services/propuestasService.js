@@ -1,4 +1,5 @@
 // Zona de importacion de librerias
+import dayjs from 'dayjs';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import boxen from 'boxen';
@@ -54,14 +55,13 @@ async function solictarDatosPropuesta() {
             value: c._id.toString()
         }))
     });
-    const datosCliente = await Cliente.getCliente(clienteId)
     return {
         nombre,
         descripcion,
         precio: parseInt(precio),
         fechaInicial,
         fechaFinal,
-        datosCliente
+        cliente: new ObjectId(clienteId)
     };
 }
 // Crear Propuesta
@@ -89,8 +89,25 @@ async function listarPropuestas(){
             }));
         const linea = chalk.gray('────────────────────────────────────────────')
         console.log(titulo)
-        const propuestasVisibles = propuestas.map(({ _id, id, ...rest }) => rest);
+        
+        
+        const propuestasVisibles = propuestas.map((propuestas) => {
+            
+            const fechaFormateadaInicio = dayjs(propuestas.plazos[0]).format('DD/MM/YYYY');
+            const fechaFormateadaFinal = dayjs(propuestas.plazos[1]).format('DD/MM/YYYY');
+            const objeto = {
+                nombrepropuesta: propuestas.nombrepropuesta,
+                descripcion: propuestas.descripción,
+                precio : propuestas.precio,
+                plazos : [fechaFormateadaInicio,fechaFormateadaFinal],
+                estado : propuestas.estado,
+                cliente : // funcion para traer el cliente
+            }
+            
+            return objeto
+        });
         console.table(propuestasVisibles)
+        console.log(propuestas)
         console.log(linea);
         await esperarTecla();
     }

@@ -60,7 +60,7 @@ colleciones
             precio: "int" //Precio de la propuesta
             plazos: [ISODate(), ISODate] //"fecha-inicial" , "fecha-final"
             estado: enum[pendiente, aceptada, rechazada]. //opciones de la propuesta , el estado inicial de toda propuesta es pendiente 
-            clentes:[] //array vacio de los clientes a los cuales va dirigida la propuesta , las misma debe tener los datos del cliente *embebidos*
+            clente: cliente referenciado al cual va la propuesta 
         }
     
     *ojo* descripción debe de contar con un formato para registrar el dato en su funcion correspondiente
