@@ -7,8 +7,6 @@ import {
     obtenerClientes
 } from '../../services/clientesService.js';
 
-
-
 import {gestorClientes, esperarTecla} from '../../cli/menus.js';
 import Cliente from '../../models/Cliente.js';
 import inquirer from 'inquirer';

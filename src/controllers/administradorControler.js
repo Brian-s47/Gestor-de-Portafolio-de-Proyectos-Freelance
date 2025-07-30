@@ -18,23 +18,15 @@ async function gestionAdministrador(db) {
     const opcion = await gestorAdministrador();
         switch (opcion) { 
         case '1':
-            console.log('Se iniciara Menu de: Gestion de Clientes')
-            await esperarTecla();
             await controlerClientes(db);
             break;
         case '2':
-            console.log('Se iniciara Menu de: Gestion de Propuestas')
-            await esperarTecla()
-            await controlerPropuestas();
+            await controlerPropuestas(db);
             break;
         case '3':
-            console.log('Se iniciara Menu de: Gestion de Proyectos')
-            await esperarTecla()
             await controlerProyectos();
             break;
         case '4':
-            console.log('Se iniciara Menu de: Gestion de Finanzas')
-            await esperarTecla()
             await controlerFinanzas();
         break;
         case '5':

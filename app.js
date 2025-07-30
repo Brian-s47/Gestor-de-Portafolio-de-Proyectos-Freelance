@@ -1,7 +1,8 @@
 // Zona de importacion de librerias
 
-import { obtenerDB } from './src/config/db.js';
+
 // Zona de  importacion de modulos
+import { obtenerDB } from './src/config/db.js';
 import {menuPrincipal, esperarTecla}  from './src/cli/menus.js';
 import {gestionAdministrador} from './src/controllers/administradorControler.js';
 // import {gestionCliente} from './src/controllers/clienteControler.js';
