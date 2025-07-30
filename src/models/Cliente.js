@@ -16,8 +16,10 @@ class Cliente {
         fecha = new Date(),
         propuestas = [],
         proyectos = [],
+        contratos = [],
         pagos = [],
-        deduda = 0
+        deduda = 0,
+        estado = true // valor por defecto: activo
     }) {
         // Asignación de propiedades del cliente
         this._id = new ObjectId();  // Genera un identificador único
@@ -28,8 +30,10 @@ class Cliente {
         this.fecha = fecha;
         this.propuestas = propuestas;
         this.proyectos = proyectos;
+        this.contratos = contratos;
         this.pagos = pagos;
         this.deduda = deduda;
+        this.estado = estado;
 
         // Validación automática al crear una instancia
         this.validarCampos();
