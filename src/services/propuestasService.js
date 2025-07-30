@@ -71,7 +71,6 @@ async function crearPropuesta(nombre, descripcion, precio, fechaInicial, fechaFi
     await esperarTecla();
 }  
 // Listar Propuestas
-// Listar Clientes
 async function listarPropuestas(){
     // Obtenermos las propuestas actuales
     const propuestas = await Propuesta.getPropuestas()
@@ -96,5 +95,73 @@ async function listarPropuestas(){
         await esperarTecla();
     }
 }
+// Modificar Propuesta
+async function editarPropuesta(){
+    // Obtenermos las Propuestas actuales
+    const propuestas = await Propuesta.getPropuestas();
+    // Validacion de que si exista almenos una Propuesta registrada
+    if (propuestas.length === 0) {
+        console.log(chalk.yellow('⚠️ No se tienen Propuestas registradas ⚠️'));
+        return;
+    }
+    const { id } = await inquirer.prompt([
+    {
+        type: 'list',
+        name: 'id',
+        message: 'Selecciona una Propuesta para Editar:',
+        choices: propuestas.map(propuesta => ({ name: propuesta.nombre, value: propuesta._id }))
+    }
+    ]);
+    const { atributoCambiar, datoNuevo } = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'atributoCambiar',
+            message: 'Seleccione el dato que desea editar',
+            choices: ['nombre', 'descripcion', 'precio', 'fechaInicial', 'fechafinal', 'cliente']
+        },
+        {
+            type: 'input',
+            name: 'datoNuevo',
+            message: `Ingrese el nuevo dato para: ${atributoCambiar}`,
+        }
+    ]);
+    // Retornamos los datos
+    return {
+        id,
+        atributoCambiar,
+        datoNuevo
+    };
+}
+// Cambiar Estado Propuesta
+async function nuevoEstadoPropuesta(){
+    // Obtenermos las Propuestas actuales
+    const propuestas = await Propuesta.getPropuestas();
+    // Validacion de que si exista almenos una Propuesta registrada
+    if (propuestas.length === 0) {
+        console.log(chalk.yellow('⚠️ No se tienen Propuestas registradas ⚠️'));
+        return;
+    }
+    const { id } = await inquirer.prompt([
+    {
+        type: 'list',
+        name: 'id',
+        message: 'Selecciona una Propuesta para Editar:',
+        choices: propuestas.map(propuesta => ({ name: propuesta.nombre, value: propuesta._id }))
+    }
+    ]);
+        const nuevoEstado = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'nuevoEstado',
+            message: 'Seleccione el Nuevo Estado',
+            choices: [pendiente, aceptada, rechazada]
+        }
+    ]);
+    // Retornamos los datos
+    return {
+        id,
+        nuevoEstado
+    };
+}
 
-export { solictarDatosPropuesta, crearPropuesta, listarPropuestas };
+export { solictarDatosPropuesta, crearPropuesta, listarPropuestas, editarPropuesta, nuevoEstadoPropuesta };
