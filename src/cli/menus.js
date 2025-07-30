@@ -144,8 +144,9 @@ async function gestorPropuestas() {
       choices: [
         { name: chalk.green('1. Crear Propuesta'), value: '1' },
         { name: chalk.blue('2. Modificar Propuesta'), value: '2' },
-        { name: chalk.blue('3. Listar Propuesta'), value: '3' },
-        { name: chalk.gray('4. Volver al menu anterior'), value: '4' }
+        { name: chalk.red('3. Listar Propuesta'), value: '3' },
+        { name: chalk.cyan('4. Cambiar Estado Propuesta'), value: '4' },
+        { name: chalk.gray('5. Volver al menu anterior'), value: '5' }
       ]
     }
   ]);
