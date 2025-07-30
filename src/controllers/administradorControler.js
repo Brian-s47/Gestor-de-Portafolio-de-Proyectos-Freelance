@@ -2,15 +2,15 @@
 import _ from 'lodash';
 
 // Zona de importacion de modulos
+import Cliente from '../models/Cliente.js'
 import { gestorAdministrador, esperarTecla}  from '../cli/menus.js';
 import { controlerClientes } from './administrador/clientesControler.js';
 import { controlerPropuestas } from './administrador/controlerPropuestas.js';
 import { controlerProyectos } from './administrador/controlerProyectos.js';
-import { controlerContratos } from './administrador/controlerContratos.js';
 import { controlerFinanzas } from './administrador/controlerFinanzas.js'
 
 // Funciones generales
-// Solicitar datos
+
 // Zona de Funciones de servicios
 async function gestionAdministrador() {
     let salir = false;
@@ -33,19 +33,14 @@ async function gestionAdministrador() {
             await controlerProyectos();
             break;
         case '4':
-            console.log('Se iniciara Menu de: Gestion de Contratos')
-            await esperarTecla()
-            await controlerContratos();
-        break;
-        case '5':
             console.log('Se iniciara Menu de: Gestion de Finanzas')
             await esperarTecla()
             await controlerFinanzas();
         break;
-        case '6':
+        case '5':
             console.log('🛠️ Esta volviendo al menu anterior "Menu Principal Gestor" 🛠️');
             await esperarTecla()
-            exit;
+            salir = true;
         }
     }
 }
