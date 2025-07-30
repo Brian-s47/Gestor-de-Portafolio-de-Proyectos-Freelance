@@ -12,7 +12,7 @@ import { controlerFinanzas } from './administrador/controlerFinanzas.js'
 // Funciones generales
 
 // Zona de Funciones de servicios
-async function gestionAdministrador() {
+async function gestionAdministrador(db) {
     let salir = false;
     while (!salir){
     const opcion = await gestorAdministrador();
@@ -20,7 +20,7 @@ async function gestionAdministrador() {
         case '1':
             console.log('Se iniciara Menu de: Gestion de Clientes')
             await esperarTecla();
-            await controlerClientes();
+            await controlerClientes(db);
             break;
         case '2':
             console.log('Se iniciara Menu de: Gestion de Propuestas')

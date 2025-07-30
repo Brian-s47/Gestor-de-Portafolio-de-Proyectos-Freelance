@@ -1,20 +1,13 @@
-import conectarDB from '../config/db.js';
 import Cliente from '../models/Cliente.js';
 import { ObjectId } from 'mongodb';
 
-const dbName = 'gestordeproyectos';
 
 /**
  * crearCliente
  */
-export async function crearCliente(data) {
+export async function crearCliente(data, collection) {
     try {
         const cliente = new Cliente(data); // validación de campos
-
-        const client = await conectarDB(); //eliminar a futuro cuando se tenga version final
-        const db = client.db(dbName); //eliminar a futuro cuando se tenga version final
-        const collection = db.collection('clientes'); //eliminar a futuro cuando se tenga version final
-
         // Verificar duplicados
         const duplicado = await collection.findOne({
         $or: [
@@ -25,33 +18,38 @@ export async function crearCliente(data) {
         });
 
         if (duplicado) {
-            client.close();
             console.error('❌ Cliente duplicado. Ya existe uno con el mismo correo, nombre o cédula.');
             return;
         }
 
         await collection.insertOne(cliente);
-        client.close(); //eliminar a futuro cuando se tenga version final
         console.log('✅ Cliente creado:', cliente);
     } catch (error) {
         console.error('❌ Error al crear cliente:', error.message);
     }
 }
 
+export async function obtenerClientes(collection) {
+    try {
+        const clientes = await collection.find().toArray();
+        return clientes;
+    } catch (error) {
+        console.error('❌ Error al obtener clientes:', error.message);
+        return [];
+    }
+}
 
 /**
  * listarClientes
  */
-export async function listarClientes() {
+export async function listarClientes(collection) {
     try {
-        const client = await conectarDB(); //eliminar a futuro cuando se tenga version final
-        const db = client.db(dbName); //eliminar a futuro cuando se tenga version final
-        const clientes = await db.collection('clientes').find().toArray();
-        client.close(); //eliminar a futuro cuando se tenga version final
+        const clientes = await obtenerClientes(collection);
         console.log('📋 Lista de clientes:');
         clientes.forEach((cli, i) => {
         console.log(`${i + 1}. ${cli.nombre} - ${cli.correo}`);
         });
+        return clientes;
     } catch (error) {
         console.error('❌ Error al listar clientes:', error.message);
     }
@@ -60,16 +58,11 @@ export async function listarClientes() {
 /**
  * actualizarCliente
  */
-export async function actualizarCliente(id, nuevosDatos) {
+export async function actualizarCliente(id, nuevosDatos, collection) {
     try {
-        const client = await conectarDB(); //eliminar a futuro cuando se tenga version final
-        const db = client.db(dbName); //eliminar a futuro cuando se tenga version final
-        const collection = db.collection('clientes'); //eliminar a futuro cuando se tenga version final
-
         // 1. Buscar el cliente actual
         const clienteActual = await collection.findOne({ _id: new ObjectId(id) });
         if (!clienteActual) {
-            client.close(); //eliminar a futuro cuando se tenga version final
             return console.error('❌ Cliente no encontrado');
         }
 
@@ -90,7 +83,6 @@ export async function actualizarCliente(id, nuevosDatos) {
             });
 
             if (existeDuplicado) {
-                client.close(); //eliminar a futuro cuando se tenga version final
                 return console.error('❌ No se puede actualizar: otro cliente ya tiene ese correo, cédula o nombre');
             }
         }
@@ -100,8 +92,6 @@ export async function actualizarCliente(id, nuevosDatos) {
         { _id: new ObjectId(id) },
         { $set: nuevosDatos }
         );
-
-        client.close(); //eliminar a futuro cuando se tenga version final
         console.log('🔄 Cliente actualizado correctamente');
     } catch (error) {
         console.error('❌ Error al actualizar cliente:', error.message);
@@ -109,16 +99,17 @@ export async function actualizarCliente(id, nuevosDatos) {
 }
 
 /**
- * eliminarCliente
+ * cambiarEstadoCliente
  */
-export async function eliminarCliente(id) {
+export async function cambiarEstadoCliente(id, nuevoEstado, collection) {
     try {
-        const client = await conectarDB(); //eliminar a futuro cuando se tenga version final
-        const db = client.db(dbName); //eliminar a futuro cuando se tenga version final
-        await db.collection('clientes').deleteOne({ _id: new ObjectId(id) });
-        client.close(); //eliminar a futuro cuando se tenga version final
-        console.log(`🗑️ Cliente eliminado ${id}`);
+        await collection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { estado: nuevoEstado } }
+        );
+
+        console.log(`🔄 Estado del cliente actualizado a: ${nuevoEstado ? 'Activo' : 'Inactivo'}`);
     } catch (error) {
-        console.error('❌ Error al eliminar cliente:', error.message);
+        console.error('❌ Error al cambiar estado del cliente:', error.message);
     }
 }
