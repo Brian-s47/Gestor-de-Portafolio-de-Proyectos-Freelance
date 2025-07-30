@@ -1,14 +1,16 @@
 // Zona de importacion de librerias
 
+import { obtenerDB } from './src/config/db.js';
 // Zona de  importacion de modulos
 import {menuPrincipal, esperarTecla}  from './src/cli/menus.js';
 import {gestionAdministrador} from './src/controllers/administradorControler.js';
-import {gestionCliente} from './src/controllers/clienteControler.js';
+// import {gestionCliente} from './src/controllers/clienteControler.js';
 
 // Codigo principal de ejecucion:
 
 async function main() {
   let salir = false;
+  const db = await obtenerDB();
 
   while (!salir) {
     const opcionPrincipal = await menuPrincipal();
@@ -18,7 +20,7 @@ async function main() {
         // Pondremos un condicional if si retorna correctamente el inicio de sesion redirije al menu correspondiente 
         console.log('Menu de Gestion de Administrador(Developer)')
         await esperarTecla();
-        await gestionAdministrador();
+        await gestionAdministrador(db);
         break;
       case '2':
         console.log('Ejecutar validacion de Inicio de sesion para cliente')
