@@ -49,6 +49,7 @@ export async function listarClientes(collection) {
         clientes.forEach((cli, i) => {
         console.log(`${i + 1}. ${cli.nombre} - ${cli.correo}`);
         });
+        return clientes;
     } catch (error) {
         console.error('❌ Error al listar clientes:', error.message);
     }
@@ -107,7 +108,6 @@ export async function cambiarEstadoCliente(id, nuevoEstado, collection) {
             { $set: { estado: nuevoEstado } }
         );
 
-        client.close();
         console.log(`🔄 Estado del cliente actualizado a: ${nuevoEstado ? 'Activo' : 'Inactivo'}`);
     } catch (error) {
         console.error('❌ Error al cambiar estado del cliente:', error.message);

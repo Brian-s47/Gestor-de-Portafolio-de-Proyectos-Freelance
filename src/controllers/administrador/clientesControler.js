@@ -3,7 +3,8 @@ import {
     crearCliente,
     listarClientes,
     actualizarCliente,
-    cambiarEstadoCliente
+    cambiarEstadoCliente,
+    obtenerClientes
 } from '../../services/clientesService.js';
 
 
@@ -55,7 +56,7 @@ async function controlerClientes(db) {
 
             case '2':
                 // Modificar cliente
-                const clientes = await listarClientes(collection);
+                const clientes = await obtenerClientes(collection);
                 if (clientes.length === 0) {
                     console.log('⚠️ No hay clientes registrados.');
                     await esperarTecla();
@@ -66,18 +67,29 @@ async function controlerClientes(db) {
                     type: 'list',
                     name: 'idClienteEditar',
                     message: 'Seleccione un cliente para editar:',
-                    choices: clientes.map(c => ({
-                        name: c.nombre,
-                        value: c._id.toString()
-                    }))
+                    choices: [
+                        ...clientes.map(c => ({
+                            name: `${c.nombre} - ${c.cedula} - ${c.telefono} - ${c.correo}`,
+                            value: c._id.toString()
+                        })),
+                        new inquirer.Separator(),
+                        { name: '⏪ Cancelar / Volver\n', value: 'cancelar' }
+                    ]
                 });
+
+                if (idClienteEditar === 'cancelar') {
+                    console.log('⏪ Operación cancelada por el usuario.');
+                    await esperarTecla();
+                    break;
+                }
+
 
                 const { campoEditar, nuevoValor } = await inquirer.prompt([
                     {
                         type: 'list',
                         name: 'campoEditar',
                         message: '¿Qué campo desea editar?',
-                        choices: ['nombre', 'cedula', 'telefono', 'correo']
+                        choices: ['Nombre', 'Cédula', 'Teléfono', 'Correo']
                     },
                     {
                         type: 'input',
@@ -86,7 +98,7 @@ async function controlerClientes(db) {
                     }
                 ]);
 
-                await actualizarCliente(idClienteEditar, { [campoEditar]: nuevoValor }, collection);
+                await actualizarCliente(idClienteEditar, { [campoEditar.toLowerCase()]: nuevoValor }, collection);
                 await esperarTecla();
                 break;
 

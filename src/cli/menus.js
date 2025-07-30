@@ -86,7 +86,7 @@ async function gestorClientes() {
         { name: chalk.green('1. Registrar Cliente'), value: '1' },
         { name: chalk.blue('2. Modificar Cliente'), value: '2' },
         { name: chalk.yellow('3. Listar Cliente'), value: '3' },
-        { name: chalk.red('4. Eliminar Cliente'), value: '4' },
+        { name: chalk.red('4. Cambiar Estado Cliente'), value: '4' },
         { name: chalk.gray('5. Volver al menu anterior'), value: '5' }
       ]
     }
