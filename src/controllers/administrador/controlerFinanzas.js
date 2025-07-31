@@ -1,6 +1,6 @@
 import { gestorFinanzas, esperarTecla } from '../../cli/menus.js';
 import { listarClientes } from '../../services/clientesService.js';
-import { agregarAbono, agregarCosto, listarFinanzas } from '../../services/finanzasService.js';
+import { registrarAbono, agregarCosto, listarFinanzas, obtenerFinanzas } from '../../services/finanzasService.js';
 import inquirer from 'inquirer';
 
 async function controlerFinanzas(db) {
@@ -13,23 +13,23 @@ async function controlerFinanzas(db) {
         const opcion = await gestorFinanzas();
 
         switch (opcion) {
-            case '1': // Listar finanzas activas
+            case '1': // Listar estados de cuenta
                 console.clear();
                 const activas = await listarFinanzas(db);
-                if (activas.length === 0) {
+                if (!activas ||activas.length === 0) {
                     console.log('⚠️ No hay estados de cuenta.');
                 } else {
-                    activas.forEach((f, i) => {
-                        console.log(`${i + 1}. ${f.nombreCliente} - ${f.nombreProyecto} | Deuda: $${f.deudaActual} | Disponible: $${f.valorDisponible}`);
-                    });
+                    // activas.forEach((f, i) => {
+                    //     console.log(`${i + 1}. ${f.nombreCliente} - ${f.nombreProyecto} | Deuda: $${f.deudaActual} | Disponible: $${f.valorDisponible}`);
+                    // });
                 }
                 await esperarTecla();
                 break;
 
-            case '2': // Hacer abono
-                console.clear();
-                const finanzasAbono = await obtenerFinanzasActivasConNombres(db);
-                if (finanzasAbono.length === 0) {
+            case '2':
+                const finanzasAbono = await obtenerFinanzas(db); // finanzas con nombres de cliente/proyecto
+
+                if (!finanzasAbono || finanzasAbono.length === 0) {
                     console.log('⚠️ No hay estados de cuenta activos para abonar.');
                     await esperarTecla();
                     break;
@@ -40,9 +40,9 @@ async function controlerFinanzas(db) {
                         type: 'list',
                         name: 'seleccionAbono',
                         message: 'Seleccione una finanza activa:',
-                        choices: finanzasAbono.map((f, i) => ({
-                            name: `${f.nombreCliente} - ${f.nombreProyecto} (Deuda: $${f.deudaActual})`,
-                            value: f.idProyecto
+                        choices: finanzasAbono.map(f => ({
+                            name: `${f.nombreProyecto} - ${f.nombreCliente} (Deuda: $${f.deudaActual})`,
+                            value: f._id.toString()
                         }))
                     }
                 ]);
@@ -55,7 +55,24 @@ async function controlerFinanzas(db) {
                     }
                 ]);
 
-                await agregarAbono(collection, seleccionAbono, parseFloat(montoAbono));
+                const { descripcion } = await inquirer.prompt([
+                    {
+                        name: 'descripcion',
+                        message: 'Ingrese una descripcion del abono',
+                        validate: input => input && input.trim().length > 0 ? true : 'La descripción no puede estar vacía.'
+                    }
+                ]);
+
+                try {
+                    console.log(seleccionAbono)
+                    const resultado = await registrarAbono(db, seleccionAbono, parseFloat(montoAbono),descripcion);
+                    console.log(`✅ Abono de $${resultado.monto} registrado.`);
+                    console.log(`🔁 Deuda restante: $${resultado.nuevaDeuda}`);
+                    console.log(`📦 Estado actual: ${resultado.nuevoEstado ? 'Activo' : 'Pagado'}`);
+                } catch (error) {
+                    console.error('❌ Error al hacer el abono:', error.message);
+                }
+
                 await esperarTecla();
                 break;
 

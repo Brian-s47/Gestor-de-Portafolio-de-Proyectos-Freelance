@@ -1,4 +1,5 @@
 import Finanzas from '../models/Finanza.js';
+import { ObjectId } from 'mongodb';
 
 export async function crearFinanza(data, collection) {
     try {
@@ -55,42 +56,69 @@ export async function listarFinanzas(db) {
             console.log(`${i + 1}. Cliente: ${finanza.nombreCliente}, Proyecto: ${finanza.nombreProyecto}`);
             console.log(`   💰 Deuda Actual: $${finanza.deudaActual}`);
             console.log(`   📦 Valor Disponible: $${finanza.valorDisponible}`);
-            console.log(`   ✅ Abonos: ${finanza.abonos.length}, 🧾 Costos: ${finanza.costos.length}`);
-            console.log('---');
+            const abonos = Array.isArray(finanza.abonos) ? finanza.abonos : [];
+            if (abonos.length > 0) {
+                abonos.forEach((abono, j) => {
+                    console.log(`   ✅ Abono ${j + 1}: Descripcion: ${abono.descripcion} - Fecha: ${abono.fecha}, Monto: $${abono.monto}`);
+                });
+            } else {
+                console.log('   ❌ No hay abonos registrados.');
+            }
+
+            const gastos = Array.isArray(finanza.gastos) ? finanza.gastos : [];
+            if (gastos.length > 0) {
+                gastos.forEach((gasto, j) => {
+                    console.log(`   ✅ Gastos ${j + 1}: Descripcion: ${gasto.descripcion} - Fecha: ${gasto.fecha}, Valor: $${gasto.valor}`);
+                });
+            } else {
+                console.log('   ❌ No hay gastos registrados.');
+            }
+            if (finanza.estado === true){
+                console.log(`   Estado: Activo`);
+            }else{
+                console.log(`   Estado: Inactivo`);
+            }
+            console.log('\n-----------------------\n');
         });
+        return finanzas;
     } catch (error) {
         console.error('❌ Error al listar finanzas:', error.message);
     }
 }
 
 
-export async function agregarAbono(collection, idProyecto, monto) {
-    const finanza = await collection.findOne({ idProyecto });
+export async function registrarAbono(db, _id, monto,descripcion) {
+    const collection = db.collection('estadoDeCuenta');
+    const finanza = await collection.findOne({ _id: new ObjectId(_id) })
     if (!finanza) {
-        console.error('❌ No se encontró una finanza con ese ID de proyecto.');
-        return;
+        throw new Error('❌ No se encontró el estado de cuenta del proyecto.');
     }
 
     const nuevaDeuda = Math.max(0, finanza.deudaActual - monto);
     const nuevoEstado = nuevaDeuda === 0 ? false : true;
 
     const resultado = await collection.updateOne(
-        { idProyecto },
+        { _id: new ObjectId(_id) },
         {
             $inc: {
-                valorDisponible: monto * 1, // se suma al disponible
+                valorDisponible: monto,
             },
             $set: {
                 deudaActual: nuevaDeuda,
                 estado: nuevoEstado
             },
             $push: {
-                abonos: { monto, fecha: new Date() }
+                abonos: {descripcion: descripcion, monto, fecha: new Date() }
             }
         }
     );
 
-    console.log(`✅ Abono de $${monto} registrado. Deuda restante: $${nuevaDeuda}. Estado: ${nuevoEstado ? 'Activo' : 'Inactivo'}`);
+    return {
+        monto,
+        nuevaDeuda,
+        nuevoEstado,
+        actualizado: resultado.modifiedCount === 1
+    };
 }
 
 export async function agregarCosto(collection, idProyecto, costo) {
