@@ -13,7 +13,7 @@ async function seedDatabase() {
       _id: new ObjectId(),
       nombre: "Juan Perez",
       cedula: "12345678",
-      telefono: "555-1234",
+      telefono: "5551234",
       correo: "juanperez@example.com",
       fecha: new Date(),
       propuestas: [],
@@ -59,7 +59,7 @@ async function seedDatabase() {
           link: null
         }
       ],
-      estados: "activo",
+      estado: "activo",
       contratos: {
         condiciones: [
           "El cliente debe proporcionar el contenido (textos e imágenes)",

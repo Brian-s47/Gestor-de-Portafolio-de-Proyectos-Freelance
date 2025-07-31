@@ -40,11 +40,11 @@ export default async function crearColeccionesConEsquema() {
                 required: ["_id", "nombre", "cedula", "telefono", "correo", "fecha", "propuestas", "proyectos", "pagos", "deuda","estado"],
                 properties: {
                   _id: { bsonType: "objectId" },
-                  nombre: { bsonType: "string" },
-                  cedula: { bsonType: "string" },
-                  telefono: { bsonType: "string" },
-                  correo: { bsonType: "string", pattern: "^\\S+@\\S+\\.\\S+$" },
-                  fecha: { bsonType: "date" },
+                  nombre: { bsonType: "string",pattern: "^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$",description: "Nombre del cliente, solo letras y espacios permitidos." },
+                  cedula: { bsonType: "string", pattern: "^[0-9]+$", description: "Cédula del cliente, solo números permitidos." },
+                 telefono: {bsonType: "string",pattern: "^\\+?[0-9]+$",description: "Teléfono del cliente. Puede comenzar con '+', seguido solo de números. No se permiten letras ni caracteres especiales."},
+                  correo: { bsonType: "string", pattern: "^\\S+@\\S+\\.\\S+$", description: "Correo electrónico del cliente." },
+                  fecha: { bsonType: "date", description: "Fecha de creación del cliente." },
                   propuestas: { bsonType: "array", items: { bsonType: "objectId" } },
                   proyectos: { bsonType: "array", items: { bsonType: "objectId" } },
                   pagos: { bsonType: "array", items: { bsonType: "objectId" } },
@@ -90,7 +90,7 @@ export default async function crearColeccionesConEsquema() {
                   "descripcion",
                   "propuesta",
                   "entregables",
-                  "estados",
+                  "estado",
                   "contratos",
                   "cliente",
                   "estadoDeCuenta"
@@ -149,7 +149,7 @@ export default async function crearColeccionesConEsquema() {
                       }
                     }
                   },
-                  estados: {
+                  estado: {
                     bsonType: "string",
                     enum: ["activo", "pausado", "finalizado", "cancelado"]
                   },
