@@ -37,7 +37,7 @@ export default async function crearColeccionesConEsquema() {
             validator: {
               $jsonSchema: {
                 bsonType: "object",
-                required: ["_id", "nombre", "cedula", "telefono", "correo", "fecha", "propuestas", "proyectos", "pagos", "deduda"],
+                required: ["_id", "nombre", "cedula", "telefono", "correo", "fecha", "propuestas", "proyectos", "pagos", "deuda","estado"],
                 properties: {
                   _id: { bsonType: "objectId" },
                   nombre: { bsonType: "string" },
@@ -48,7 +48,8 @@ export default async function crearColeccionesConEsquema() {
                   propuestas: { bsonType: "array", items: { bsonType: "objectId" } },
                   proyectos: { bsonType: "array", items: { bsonType: "objectId" } },
                   pagos: { bsonType: "array", items: { bsonType: "objectId" } },
-                  deduda: { bsonType: "number", minimum: 0 }
+                  deuda: { bsonType: "number", minimum: 0 },
+                  estado:{bsonType: "bool"}
                 }
               }
             }
@@ -61,7 +62,7 @@ export default async function crearColeccionesConEsquema() {
             validator: {
               $jsonSchema: {
                 bsonType: "object",
-                required: ["_id", "nombrepropuesta", "descripcion", "precio", "plazos", "estado", "clentes"],
+                required: ["_id", "nombrepropuesta", "descripcion", "precio", "plazos", "estado", "cliente"],
                 properties: {
                   _id: { bsonType: "objectId" },
                   nombrepropuesta: { bsonType: "string" },
@@ -69,21 +70,7 @@ export default async function crearColeccionesConEsquema() {
                   precio: { bsonType: "number", minimum: 0 },
                   plazos: { bsonType: "array", minItems: 2, maxItems: 2, items: { bsonType: "date" } },
                   estado: { bsonType: "string", enum: ["pendiente", "aceptada", "rechazada"] },
-                  clentes: {
-                    bsonType: "array",
-                    minItems: 1,
-                    items: {
-                      bsonType: "object",
-                      required: ["_id", "nombre", "cedula", "telefono", "correo"],
-                      properties: {
-                        _id: { bsonType: "objectId" },
-                        nombre: { bsonType: "string" },
-                        cedula: { bsonType: "string" },
-                        telefono: { bsonType: "string" },
-                        correo: { bsonType: "string", pattern: "^\\S+@\\S+\\.\\S+$" }
-                      }
-                    }
-                  }
+                  cliente: {bsonType: "objectId" }
                 }
               }
             }
@@ -91,40 +78,57 @@ export default async function crearColeccionesConEsquema() {
           console.log("✅ Esquema de propuestas creado.");
           break;
 
+
         case "proyectos":
           await db.createCollection("proyectos", {
             validator: {
               $jsonSchema: {
                 bsonType: "object",
-                required: ["_id", "nombredelproyecto", "descripcion", "propuesta", "entregables", "estados", "contratos", "cliente", "estadoDeCuenta"],
+                required: [
+                  "_id",
+                  "nombredelproyecto",
+                  "descripcion",
+                  "propuesta",
+                  "entregables",
+                  "estados",
+                  "contratos",
+                  "cliente",
+                  "estadoDeCuenta"
+                ],
                 properties: {
                   _id: { bsonType: "objectId" },
                   nombredelproyecto: { bsonType: "string" },
-                  descripcion: { bsonType: "array", items: { bsonType: "string" } },
+                  descripcion: {
+                    bsonType: "array",
+                    items: { bsonType: "string" }
+                  },
                   propuesta: {
                     bsonType: "object",
-                    required: ["_id", "nombrepropuesta", "descripcion", "precio", "plazos", "estado", "clentes"],
+                    required: [
+                      "_id",
+                      "nombrepropuesta",
+                      "descripcion",
+                      "precio",
+                      "plazos",
+                      "estado",
+                      "cliente"
+                    ],
                     properties: {
                       _id: { bsonType: "objectId" },
                       nombrepropuesta: { bsonType: "string" },
                       descripcion: { bsonType: "string" },
                       precio: { bsonType: "number", minimum: 0 },
-                      plazos: { bsonType: "array", items: { bsonType: "date" } },
-                      estado: { bsonType: "string", enum: ["pendiente", "aceptada", "rechazada"] },
-                      clentes: {
+                      plazos: {
                         bsonType: "array",
-                        items: {
-                          bsonType: "object",
-                          required: ["_id", "nombre", "cedula", "telefono", "correo"],
-                          properties: {
-                            _id: { bsonType: "objectId" },
-                            nombre: { bsonType: "string" },
-                            cedula: { bsonType: "string" },
-                            telefono: { bsonType: "string" },
-                            correo: { bsonType: "string", pattern: "^\\S+@\\S+\\.\\S+$" }
-                          }
-                        }
-                      }
+                        items: { bsonType: "date" },
+                        minItems: 2,
+                        maxItems: 2
+                      },
+                      estado: {
+                        bsonType: "string",
+                        enum: ["pendiente", "aceptada", "rechazada"]
+                      },
+                      cliente: { bsonType: "objectId" }
                     }
                   },
                   entregables: {
@@ -135,36 +139,46 @@ export default async function crearColeccionesConEsquema() {
                       properties: {
                         descripcion: { bsonType: "string" },
                         fechadeentrega: { bsonType: "date" },
-                        estado: { bsonType: "string", enum: ["pendiente", "entregado", "aprobado", "rechazado"] },
-                        link: { anyOf: [{ bsonType: "string" }, { bsonType: "null" }] }
+                        estado: {
+                          bsonType: "string",
+                          enum: ["pendiente", "entregado", "aprobado", "rechazado"]
+                        },
+                        link: {
+                          anyOf: [{ bsonType: "string" }, { bsonType: "null" }]
+                        }
                       }
                     }
                   },
-                  estados: { bsonType: "string", enum: ["activo", "pausado", "finalizado", "cancelado"] },
+                  estados: {
+                    bsonType: "string",
+                    enum: ["activo", "pausado", "finalizado", "cancelado"]
+                  },
                   contratos: {
                     bsonType: "object",
-                    required: ["condiciones", "fecha_inicio", "fecha_fin", "presupuestoInicial", "cliente", "desarrollador"],
+                    required: [
+                      "condiciones",
+                      "fecha_inicio",
+                      "fecha_fin",
+                      "presupuestoInicial",
+                      "cliente",
+                      "desarrollador"
+                    ],
                     properties: {
-                      condiciones: { bsonType: "array", items: { bsonType: "string" } },
+                      condiciones: {
+                        bsonType: "array",
+                        items: { bsonType: "string" }
+                      },
                       fecha_inicio: { bsonType: "date" },
                       fecha_fin: { bsonType: "date" },
                       presupuestoInicial: { bsonType: "number", minimum: 0 },
-                      cliente: {
-                        bsonType: "object",
-                        required: ["_id", "nombre", "cedula", "telefono", "correo"],
-                        properties: {
-                          _id: { bsonType: "objectId" },
-                          nombre: { bsonType: "string" },
-                          cedula: { bsonType: "string" },
-                          telefono: { bsonType: "string" },
-                          correo: { bsonType: "string", pattern: "^\\S+@\\S+\\.\\S+$" }
-                        }
-                      },
+                      cliente: { bsonType: "objectId" },
                       desarrollador: { bsonType: "string" }
                     }
                   },
                   cliente: { bsonType: "objectId" },
-                  estadoDeCuenta: { anyOf: [{ bsonType: "objectId" }, { bsonType: "null" }] }
+                  estadoDeCuenta: {
+                    anyOf: [{ bsonType: "objectId" }, { bsonType: "null" }]
+                  }
                 }
               }
             }
@@ -177,7 +191,16 @@ export default async function crearColeccionesConEsquema() {
             validator: {
               $jsonSchema: {
                 bsonType: "object",
-                required: ["_id", "IdCliente", "IdProyecto", "deudaActual", "valorDisponible", "abonos", "costos"],
+                required: [
+                  "_id",
+                  "IdCliente",
+                  "IdProyecto",
+                  "deudaActual",
+                  "valorDisponible",
+                  "abonos",
+                  "costos",
+                  "estado"
+                ],
                 properties: {
                   _id: { bsonType: "objectId" },
                   IdCliente: { bsonType: "objectId" },
@@ -185,7 +208,8 @@ export default async function crearColeccionesConEsquema() {
                   deudaActual: { bsonType: "number", minimum: 0 },
                   valorDisponible: { bsonType: "number", minimum: 0 },
                   abonos: { bsonType: "array", items: {} },
-                  costos: { bsonType: "array", items: {} }
+                  costos: { bsonType: "array", items: {} },
+                  estado: {bsonType: "bool"}
                 }
               }
             }
@@ -195,9 +219,9 @@ export default async function crearColeccionesConEsquema() {
       }
     }
   } catch (error) {
-    console.error("❌ Error al crear esquemas:", error.message);
+    console.error("❌ Error al crear esquemas:", error.message,error);
   } finally {
-    await client.close();
-    console.log("🔌 Conexión cerrada.");
+    
+    console.log("Esquema cargado correctamente.");
   }
 }

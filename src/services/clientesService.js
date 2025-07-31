@@ -25,7 +25,7 @@ export async function crearCliente(data, collection) {
         await collection.insertOne(cliente);
         console.log('✅ Cliente creado:', cliente);
     } catch (error) {
-        console.error('❌ Error al crear cliente:', error.message);
+        console.error('❌ Error al crear cliente:', error.message,error);
     }
 }
 

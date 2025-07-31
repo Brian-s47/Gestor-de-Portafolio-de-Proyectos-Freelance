@@ -19,7 +19,8 @@ async function seedDatabase() {
       propuestas: [],
       proyectos: [],
       pagos: [],
-      deduda: 0
+      deuda: 0,
+      estado:true
     };
     await db.collection('clientes').insertOne(cliente);
 
@@ -31,13 +32,7 @@ async function seedDatabase() {
       precio: 1500,
       plazos: [new Date("2025-08-01"), new Date("2025-09-01")],
       estado: "pendiente",
-      clentes: [{
-        _id: cliente._id,
-        nombre: cliente.nombre,
-        cedula: cliente.cedula,
-        telefono: cliente.telefono,
-        correo: cliente.correo
-      }]
+      cliente: cliente._id
     };
     await db.collection('propuestas').insertOne(propuesta);
 
@@ -74,13 +69,9 @@ async function seedDatabase() {
         fecha_inicio: new Date("2025-08-01"),
         fecha_fin: new Date("2025-09-01"),
         presupuestoInicial: 1500,
-        cliente: {
-          _id: cliente._id,
-          nombre: cliente.nombre,
-          cedula: cliente.cedula,
-          telefono: cliente.telefono,
-          correo: cliente.correo
-        },
+        cliente:  cliente._id,
+        
+        
         desarrollador: "Ana Gómez"
       },
       cliente: cliente._id,
@@ -101,7 +92,8 @@ async function seedDatabase() {
       deudaActual: 1500,
       valorDisponible: 0,
       abonos: [],
-      costos: []
+      costos: [],
+      estado:true
     };
     await db.collection('estadoDeCuenta').insertOne(estadoDeCuenta);
 
@@ -112,10 +104,11 @@ async function seedDatabase() {
 
     console.log("✅ Datos iniciales insertados correctamente.");
   } catch (err) {
-    console.error("❌ Error insertando datos de prueba:", err.message);
+    console.error("❌ Error insertando datos de prueba:", err.message,err);
   } finally {
-    await client.close(); // cerrar siempre la conexión tras usar
-    console.log("🔌 Conexión cerrada.");
+    console.log("ok");
+    
+    
   }
 }
 
