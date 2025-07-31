@@ -1,4 +1,5 @@
 // Zona de importacion de Modulos
+import Propuesta from '../../models/Propuesta.js';
 import {gestorPropuestas, esperarTecla} from '../../cli/menus.js';
 import {crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta} from '../../services/propuestasService.js'
 

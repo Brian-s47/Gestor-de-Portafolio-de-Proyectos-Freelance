@@ -29,7 +29,7 @@ async function main() {
         // await idCliente = inicioSesionCliente()
         console.log('Menu de Gestion de Cliente');
         await esperarTecla();
-        await gestionCliente(db);
+        await gestionCliente();
         break;
       case '3':
         console.log('🚀 Esta saliendo del sistema Gestor de Portafoliom de Proyectos Freelance 🚀');

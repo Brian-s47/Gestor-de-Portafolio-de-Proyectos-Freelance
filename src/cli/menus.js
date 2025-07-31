@@ -113,9 +113,9 @@ async function gestorFinanzas() {
       name: 'opcion',
       message: 'Selecciona una opción:',
       choices: [
-        { name: chalk.green('1. Crear Registro'), value: '1' },
-        { name: chalk.blue('2. Listar Registro'), value: '2' },
-        { name: chalk.blue('3. Actualziar Registro'), value: '3' },
+        { name: chalk.green('1. Listar estados de cuenta'), value: '1' },
+        { name: chalk.blue('2. Hacer abono'), value: '2' },
+        { name: chalk.blue('3. Registrar salida'), value: '3' },
         { name: chalk.gray('4. Volver al menu anterior'), value: '4' }
       ]
     }

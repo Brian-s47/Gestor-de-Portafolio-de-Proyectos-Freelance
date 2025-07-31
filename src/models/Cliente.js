@@ -16,9 +16,9 @@ class Cliente {
         fecha = new Date(),
         propuestas = [],
         proyectos = [],
-        contratos = [],
+        //contratos = [],
         pagos = [],
-        deduda = 0,
+        deuda = 0,
         estado = true // valor por defecto: activo
     }) {
         // Asignación de propiedades del cliente
@@ -30,9 +30,9 @@ class Cliente {
         this.fecha = fecha;
         this.propuestas = propuestas;
         this.proyectos = proyectos;
-        this.contratos = contratos;
+        //this.contratos = contratos;
         this.pagos = pagos;
-        this.deduda = deduda;
+        this.deuda = deuda;
         this.estado = estado;
 
         // Validación automática al crear una instancia
