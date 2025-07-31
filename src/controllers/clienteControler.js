@@ -18,11 +18,9 @@ async function gestionCliente(db, idCliente) { // la funcion debe recibir el ID 
         switch (opcion) { 
         case '1':
             await listarProyectosCliente(db, idCliente);
-            await esperarTecla();
             break;
         case '2':
             await listarPropuestasCliente(db, idCliente);
-            await esperarTecla()
             break;
         case '3':
             // Pendiente hatsa tener estados financieros

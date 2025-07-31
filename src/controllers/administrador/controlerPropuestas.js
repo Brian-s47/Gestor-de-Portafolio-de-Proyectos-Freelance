@@ -12,27 +12,21 @@ async function controlerPropuestas(db) {
         switch (opcion) {
             case '1':
             await crearPropuesta(db);
-            // console.log('Se iniciara Menu de: Crear Propuesta');
-            await esperarTecla();
             break;
             case '2':
             await modifiarPropuesta(db);
-            // console.log('Se iniciara Menu de: Modificar Propuesta'); 
-            await esperarTecla();
             break;
             case '3':
             await listarPropuestas(db);
             // console.log('Se iniciara Menu de: Listar Propuesta');
-            await esperarTecla();
             break;
             case '4':
             await cambiarEstadoPropuesta(db);
-            // console.log('Se iniciara Menu de: Cambiar Estado Propuesta'); // se decide separar ya que cambiar el estado a aprobado genera la creacion de un proyecto
-            await esperarTecla();
             break;
             case '5':
-            salir = true;
             console.log('🛠️Esta volviendo al menu anterior: "Menu Gestor Administrador" 🛠️');
+            await esperarTecla();
+            salir = true;
             break;
         }
     }

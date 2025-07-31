@@ -1,4 +1,5 @@
 // Importacion de librerias
+import dayjs from 'dayjs';
 import chalk from 'chalk';
 import _ from 'lodash';
 
@@ -20,10 +21,23 @@ export function validarNumeroPositivo(input) {
     return true;
 }
 
-export function validarFecha(fecha) {
-  const date = new Date(fecha);
-  if (isNaN(date)) {
-    return '⚠️ Fecha inválida. Usa formato YYYY-MM-DD';
+
+ export function validarFecha(input) {
+  const regex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!regex.test(input)) {
+    return '❌ Formato inválido. Use YYYY-MM-DD (ej. 2025-09-15)';
   }
-  return true;
+
+  const fecha = dayjs(input);
+  return fecha.isValid()
+    ? true
+    : '❌ Fecha no válida (revisa días o meses inexistentes)';
+}
+
+export function validarTextoObligatorio(input) {
+  if (typeof input !== 'string') return '❌ Entrada inválida.';
+  const limpio = input.trim();
+  return limpio.length > 0
+    ? true
+    : '❌ Este campo no puede estar vacío ni contener solo espacios.';
 }

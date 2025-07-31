@@ -56,7 +56,7 @@ async function solictarDatosPropuesta(db) {
         }))
     });
     return {
-        nombre,
+        nombrepropuesta: nombre,
         descripcion,
         precio: parseInt(precio),
         fechaInicial,
@@ -67,11 +67,11 @@ async function solictarDatosPropuesta(db) {
 // Crear Propuesta
 async function crearPropuesta(db){
     const datosPropuesta = await solictarDatosPropuesta(db);
-    const propuesta = new Propuesta(datosPropuesta.nombre, datosPropuesta.descripcion, datosPropuesta.precio, datosPropuesta.fechaInicial, datosPropuesta.fechaFinal, datosPropuesta.cliente) // Instanciamos Propuesta
+    const propuesta = new Propuesta(datosPropuesta.nombrepropuesta, datosPropuesta.descripcion, datosPropuesta.precio, datosPropuesta.fechaInicial, datosPropuesta.fechaFinal, datosPropuesta.cliente) // Instanciamos Propuesta
     const propuestas = db.collection('propuestas');
     try {
         const resultado = await propuestas.insertOne(propuesta);
-        console.log('✅ Propuesta guardada en la base de datos con Nombre:', propuesta.nombre);
+        console.log('✅ Propuesta guardada en la base de datos con Nombre:', propuesta.nombrepropuesta);
         return resultado;
     } catch (error) {
         console.error('❌ Error al insertar propuesta:', error.message);
@@ -109,7 +109,7 @@ async function listarPropuestas(db){
             const fechaFormateadaFinal = dayjs(propuesta.plazos[1]).format('DD/MM/YYYY');
 
             return {
-                nombrepropuesta: propuesta.nombre ?? propuesta.nombrepropuesta,
+                nombrepropuesta: propuesta.nombrepropuesta,
                 descripcion: propuesta.descripcion,
                 precio: propuesta.precio,
                 plazos: [fechaFormateadaInicio, fechaFormateadaFinal],
@@ -154,7 +154,7 @@ async function listarPropuestasCliente(db, idCliente){
             const fechaFormateadaFinal = dayjs(propuesta.plazos[1]).format('DD/MM/YYYY');
 
             return {
-                nombrepropuesta: propuesta.nombre ?? propuesta.nombrepropuesta,
+                nombrepropuesta: propuesta.nombrepropuesta,
                 descripcion: propuesta.descripcion,
                 precio: propuesta.precio,
                 plazos: [fechaFormateadaInicio, fechaFormateadaFinal],
@@ -165,7 +165,6 @@ async function listarPropuestasCliente(db, idCliente){
     );
         console.table(propuestasVisibles)
         console.log(linea);
-        await esperarTecla();
     }
 };
 // Modificar Propuesta
@@ -182,7 +181,7 @@ async function modifiarPropuesta(db){
         type: 'list',
         name: 'id',
         message: 'Selecciona una Propuesta para Editar:',
-        choices: propuestas.map(propuesta => ({ name: propuesta.nombre, value: propuesta._id }))
+        choices: propuestas.map(propuesta => ({ name: propuesta.nombrepropuesta, value: propuesta._id }))
     }
     ]);
     const { atributoCambiar, datoNuevo } = await inquirer.prompt([
@@ -205,7 +204,7 @@ async function modifiarPropuesta(db){
                 await dbPropuestas.updateOne(
                 { _id: new ObjectId(id) }, 
                 {
-                    $set: {nombre: datoNuevo}
+                    $set: {nombrepropuesta: datoNuevo}
                 });
                 console.log('Se modifico correctamente el nombre');
                 break;
@@ -267,7 +266,7 @@ async function cambiarEstadoPropuesta(db){
         type: 'list',
         name: 'id',
         message: 'Selecciona una Propuesta para Editar:',
-        choices: propuestas.map(propuesta => ({ name: propuesta.nombre, value: propuesta._id }))
+        choices: propuestas.map(propuesta => ({ name: propuesta.nombrepropuesta, value: propuesta._id }))
     }
     ]);
     const { nuevoEstado } = await inquirer.prompt([
@@ -280,8 +279,10 @@ async function cambiarEstadoPropuesta(db){
     ]);
     // Cambiamos estado segun ID en coleccion
     const coleccion = db.collection('propuestas');
-    await coleccion.updateOne({ _id: new ObjectId(id) },
-        { $set: { estado: nuevoEstado }});
+    await coleccion.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { estado: nuevoEstado }}
+    );
 };
 
 export { crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta, listarPropuestasCliente };

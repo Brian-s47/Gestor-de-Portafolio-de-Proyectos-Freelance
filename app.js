@@ -32,10 +32,9 @@ async function main() {
         await gestionCliente(db);
         break;
       case '3':
-        salir = true;
         console.log('🚀 Esta saliendo del sistema Gestor de Portafoliom de Proyectos Freelance 🚀');
         await esperarTecla();
-        exit;
+        process.exit(0); 
     }
   }
 }

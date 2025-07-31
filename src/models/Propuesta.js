@@ -1,10 +1,8 @@
-// Zona de importacion de librerias
-import { ObjectId } from 'mongodb'; // Para obtener el id generado por MongoDB
 // Creacion de Clase
 class Propuesta {
-    constructor (nombre, descripcion, precio, fechaInicial, fechaFinal, cliente){
+    constructor (nombrepropuesta, descripcion, precio, fechaInicial, fechaFinal, estado, cliente){
         //Atributos generales
-        this.nombre = nombre; // Debe ser de tipo String no recibir simbolos ni numeros y no puede estar vacio
+        this.nombrepropuesta = nombrepropuesta; // Debe ser de tipo String no recibir simbolos ni numeros y no puede estar vacio
         this.descripcion = descripcion; // Debe ser de tipo string
         this.precio = precio; // debe ser de tipo int 
         this.plazos = [new Date(fechaInicial), new Date(fechaFinal)]; // en formato ISODate()
