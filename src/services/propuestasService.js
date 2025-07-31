@@ -123,6 +123,51 @@ async function listarPropuestas(db){
         await esperarTecla();
     }
 };
+// Listar propuestas por Cliente
+async function listarPropuestasCliente(db, idCliente){
+    // Obtenermos las propuestas actuales asosiadas al cliente
+    const propuestas = await db.collection('propuestas').find({cliente: idCliente}).toArray();
+    // Validacion si existen propuestas
+    if(propuestas.lenhgth === 0){
+        console.log(`No se tienen Propuestas registrados`); // Mensaje de error no existen propuestas
+        await esperarTecla();
+    } else{
+        const titulo = chalk.bold.cyan('📋 Listado de Propuestas') 
+          console.log(boxen(titulo, {
+                padding: 1,
+                margin: 1,
+                borderStyle: 'round',
+                borderColor: 'green',
+                align: 'center'
+            }));
+        const linea = chalk.gray('────────────────────────────────────────────')
+        console.log(titulo)
+        
+        // Obtener el nombre del cliente
+        const clientes = db.collection('clientes');
+
+        const propuestasVisibles = await Promise.all(
+        propuestas.map(async (propuesta) => {
+            const datosCliente = await clientes.findOne({ _id: new ObjectId(propuesta.cliente) });
+
+            const fechaFormateadaInicio = dayjs(propuesta.plazos[0]).format('DD/MM/YYYY');
+            const fechaFormateadaFinal = dayjs(propuesta.plazos[1]).format('DD/MM/YYYY');
+
+            return {
+                nombrepropuesta: propuesta.nombre ?? propuesta.nombrepropuesta,
+                descripcion: propuesta.descripcion,
+                precio: propuesta.precio,
+                plazos: [fechaFormateadaInicio, fechaFormateadaFinal],
+                cliente: datosCliente?.nombre ?? "Desconocido",
+                estado: propuesta.estado,
+            };
+        })
+    );
+        console.table(propuestasVisibles)
+        console.log(linea);
+        await esperarTecla();
+    }
+};
 // Modificar Propuesta
 async function modifiarPropuesta(db){
     // Obtenermos las propuestas actuales
@@ -239,4 +284,4 @@ async function cambiarEstadoPropuesta(db){
         { $set: { estado: nuevoEstado }});
 };
 
-export { crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta };
+export { crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta, listarPropuestasCliente };

@@ -220,7 +220,6 @@ async function crearProyecto(db){
     console.log('Se ha registrado el proyecto correctamente')
     await esperarTecla();
 };
-
 // Insertar Entregable
 async function insertarEntregables(id, db){
     // inicializamos variables para condiciones y bandera de ciclo while
@@ -247,7 +246,6 @@ async function insertarEntregables(id, db){
     console.log('Se ha registrado el entregable correctamente')
     await esperarTecla();
 };
-
 // Actualizar estado
 async function actualizarEstado(id, db){
     const { nuevoEstado } = await inquirer.prompt([
@@ -266,7 +264,6 @@ async function actualizarEstado(id, db){
     console.log('Se ha acctualizado el estado correctamente')
     await esperarTecla();
 };
-
 // Actualizar Fecha Final
 async function actualizarFechaFinal(id, db){
     const { fechaFin } = await inquirer.prompt([
@@ -285,8 +282,7 @@ async function actualizarFechaFinal(id, db){
     console.log('Se ha actualizado la fecha final correctamente')
     await esperarTecla();
 };
-
-// Listar Propuestas
+// Listar Proyectos
 async function listarProyectos(db) {
     const proyectos = await db.collection('proyectos').find().toArray();
 
@@ -328,6 +324,56 @@ async function listarProyectos(db) {
     console.table(proyectosVisibles);
     console.log(linea);
     await esperarTecla();
-}
+};
+// Listar Proyectos de un cliente
+async function listarProyectosCliente(db, idCliente){
+    // Traemos todos los proyectos Actuales del cliente
+    const proyectos = await db.collection('proyectos').find({cliente: idCliente}).toArray();
 
-export { seleccionarProyecto, crearProyecto, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos };
+    // Validacion de que si se tengan proyectos registrados al cliente
+    if (proyectos.length === 0) {
+        console.log(`⚠️ No se tienen Proyectos registrados actualmente`);
+        await esperarTecla();
+        return;
+    }
+
+    //Titulo de la visual de la tabla de proyectos
+    const titulo = chalk.bold.cyan('📋 Listado de Proyectos');
+    console.log(boxen(titulo, {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'round',
+        borderColor: 'green',
+        align: 'center'
+    }));
+
+    // Linea que mejora la visual y separacion
+    const linea = chalk.gray('────────────────────────────────────────────');
+
+    // Mapeo del array obtenodo para mostrar los datos de forma correcta
+    const proyectosVisibles = proyectos.map((proyecto) => {
+        // condicional por si esta vacio propuesta o contrato
+        const propuesta = proyecto.propuesta || {};
+        const contrato = proyecto.contrato || {};
+        // ajuste de fechas para tener un formato visible 
+        const fechaInicio = dayjs(contrato.fecha_inicio).format('DD/MM/YYYY');
+        const fechaFin = dayjs(contrato.fecha_fin).format('DD/MM/YYYY');
+        // Return de datos  para imprimer en consola
+        return {
+            Proyecto: proyecto.nombredelproyecto,
+            Cliente: contrato.cliente?.nombre || "Desconocido",
+            Propuesta: propuesta.nombrepropuesta || propuesta.nombre || "Sin nombre",
+            Precio: propuesta.precio || "No definido",
+            Plazo: `${fechaInicio} - ${fechaFin}`,
+            Estado: proyecto.estado,
+            Presupuesto: contrato.presupuestoInicial || "No definido",
+            Desarrollador: contrato.desarrollador || "Sin asignar"
+        };
+    });
+    // imprecion en consola
+    console.table(proyectosVisibles);
+    console.log(linea);
+    await esperarTecla();
+};
+
+export { seleccionarProyecto, crearProyecto, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, listarProyectosCliente };

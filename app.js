@@ -5,7 +5,7 @@
 import { obtenerDB } from './src/config/db.js';
 import {menuPrincipal, esperarTecla}  from './src/cli/menus.js';
 import {gestionAdministrador} from './src/controllers/administradorControler.js';
-// import {gestionCliente} from './src/controllers/clienteControler.js';
+import {gestionCliente} from './src/controllers/clienteControler.js';
 
 // Codigo principal de ejecucion:
 
@@ -29,7 +29,7 @@ async function main() {
         // await idCliente = inicioSesionCliente()
         console.log('Menu de Gestion de Cliente');
         await esperarTecla();
-        await gestionCliente();
+        await gestionCliente(db);
         break;
       case '3':
         salir = true;
