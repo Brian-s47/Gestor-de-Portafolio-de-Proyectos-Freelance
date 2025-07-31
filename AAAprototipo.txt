@@ -69,7 +69,7 @@ colleciones
         {   
             nombredelproyecto: "sting"// nombre del proyecto
             descripcion[]: //toda la descripcion del proyecto con un formato especificado (en la funcion)(como quiero para)
-            propuesta: //{} vacio para *embeber* la propuesta
+            propuesta: //{} vacio para *embeber* la propuesta pero el cliente va referenciado dentro del propuesta embebida
             entregables[
                 {
                     descripcion:"string" // breve resumen del entregrable

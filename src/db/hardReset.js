@@ -1,31 +1,34 @@
-import conectarDB from '../config/db.js';
+import { conectarDB } from '../config/db.js';
 
-//funcion para elminiar todos los datos de la base de datos ,deja las colleciones
-
+// Función para eliminar todas las colecciones completamente (datos + esquema)
 export default async function resetDatabase() {
-    const dbName = "gestordeproyectos";
-    const client = await conectarDB();
-    const db = client.db(dbName);
+  const dbName = "gestordeproyectos";
+  const client = await conectarDB();
+  const db = client.db(dbName);
 
-    try {
-        // Lista de colecciones que deseas limpiar
-        const collections = [
-            'clientes',
-            'propuestas',
-            'proyectos',
-            'estadoDeCuenta'
-        ];
+  try {
+    const collections = [
+      'clientes',
+      'propuestas',
+      'proyectos',
+      'estadoDeCuenta'
+    ];
 
-        for (const col of collections) { // san buclesito for
-            const result = await db.collection(col).deleteMany({}); //funcion para esperar y elimiar todas las colleciones una por una
-            console.log(`🧹 Colección "${col}" limpiada: ${result.deletedCount} documentos eliminados`);
-        }
+    for (const col of collections) {
+      const existe = await db.listCollections({ name: col }).hasNext();
 
-        console.log("✅ Base de datos reiniciada correctamente.");
-    } catch (err) {
-        console.error("❌ Error reseteando la base de datos:", err.message);
-    } finally {
-        client.close();
+      if (existe) {
+        await db.collection(col).drop();
+        console.log(`🗑️ Colección "${col}" eliminada completamente (datos + esquema).`);
+      } else {
+        console.log(`ℹ️ La colección "${col}" no existe. Nada que eliminar.`);
+      }
     }
-}
 
+    console.log("✅ Base de datos reiniciada. Colecciones eliminadas completamente.");
+  } catch (err) {
+    console.error("❌ Error eliminando colecciones:", err.message);
+  } finally {
+        console.log("ℹ️ Hard reset completo.");
+  }
+}
