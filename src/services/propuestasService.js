@@ -7,7 +7,6 @@ import { ObjectId } from 'mongodb';
 
 // Zona de importacion de modulos
 import Propuesta from '../models/Propuesta.js';
-import { conectarDB } from '../config/db.js'; // Conexion con base de datos
 import { esperarTecla }  from '../cli/menus.js';
 import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarFecha } from '../utils/validadores.js'
 
@@ -226,7 +225,7 @@ async function cambiarEstadoPropuesta(db){
         choices: propuestas.map(propuesta => ({ name: propuesta.nombre, value: propuesta._id }))
     }
     ]);
-        const { nuevoEstado } = await inquirer.prompt([
+    const { nuevoEstado } = await inquirer.prompt([
         {
             type: 'list',
             name: 'nuevoEstado',

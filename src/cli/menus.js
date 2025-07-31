@@ -182,6 +182,35 @@ async function gestorProyectos() {
   return opcion;
 }
 
+// Menu Actualizacion de Proyectos
+async function actualizacionProyectos() {
+  console.clear() // Borrar consola para mejor visualizacion
+  const titulo = chalk.bold.cyan('🔄 Menu Actualizacion de Proyectos') 
+  const linea = chalk.gray('────────────────────────────────────────────')
+  console.log(boxen(titulo, {
+    padding: 1,
+    margin: 1,
+    borderStyle: 'round',
+    borderColor: 'green',
+    align: 'center'
+  }))
+  console.log(linea)
+  const { opcion } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'opcion',
+      message: 'Selecciona una opción:',
+      choices: [
+        { name: chalk.green('1. Agregar Entregables'), value: '1' },
+        { name: chalk.blue('2. Actualizar estado'), value: '2' },
+        { name: chalk.blue('3. Actualizar Fecha Final'), value: '3' },
+        { name: chalk.gray('4. Volver al menu anterior'), value: '4' }
+      ]
+    }
+  ]);
+  return opcion;
+}
+
 // Menu Administrador
 async function gestorCliente() {
   console.clear() // Borrar consola para mejor visualizacion
@@ -223,4 +252,4 @@ async function esperarTecla() {
   ]);
 }
 
-export { esperarTecla, menuPrincipal, gestorAdministrador, gestorClientes, gestorFinanzas, gestorPropuestas, gestorProyectos, gestorCliente };
+export { esperarTecla, menuPrincipal, gestorAdministrador, gestorClientes, gestorFinanzas, gestorPropuestas, gestorProyectos, actualizacionProyectos, gestorCliente };

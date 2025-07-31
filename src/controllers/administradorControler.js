@@ -24,10 +24,10 @@ async function gestionAdministrador(db) {
             await controlerPropuestas(db);
             break;
         case '3':
-            await controlerProyectos();
+            await controlerProyectos(db);
             break;
         case '4':
-            await controlerFinanzas();
+            await controlerFinanzas(db);
         break;
         case '5':
             console.log('🛠️ Esta volviendo al menu anterior "Menu Principal Gestor" 🛠️');
