@@ -1,5 +1,6 @@
 // Zona de importacion de librerias
 
+
 // Zona de  importacion de modulos
 import { obtenerDB } from './src/config/db.js';
 import {menuPrincipal, esperarTecla}  from './src/cli/menus.js';
