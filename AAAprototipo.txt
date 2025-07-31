@@ -30,7 +30,7 @@ maximas , reglas generales para el desarrollo
         - inquirer
         - mongodb
 
-
+Estructura del menu
 
 tipologia de objetos: Estructura de la base de datos , collecciones y objetos que reciben
 
@@ -60,7 +60,7 @@ colleciones
             precio: "int" //Precio de la propuesta
             plazos: [ISODate(), ISODate] //"fecha-inicial" , "fecha-final"
             estado: enum[pendiente, aceptada, rechazada]. //opciones de la propuesta , el estado inicial de toda propuesta es pendiente 
-            clentes:[] //array vacio de los clientes a los cuales va dirigida la propuesta , las misma debe tener los datos del cliente *embebidos*
+            clente: cliente referenciado al cual va la propuesta 
         }
     
     *ojo* descripción debe de contar con un formato para registrar el dato en su funcion correspondiente
@@ -125,9 +125,11 @@ colleciones
 
 
             
-Estructura del menu
+            
 
+classes
 
+class Cliente{} para crear objetos de tipo cliente
 
 funcion menu() // Debe estar en app.js y desplegar un menu con opciones que redirijan a los metodos o funciones a implementar de esta manera se modulariza el codigo
 
@@ -243,11 +245,6 @@ Metodo estatico de la clase Registro.<-getRegistrosEgresos()
                         deleteRegistro() (metodo estatico de Registro.)
 
     
-
-classes
-
-class Cliente{} para crear objetos de tipo cliente
-
 async function listarClientes(){
     //devuelve un table/array/log con la lista de todos los clientes y sus datos , asi como tambien los proyectos a los cuales esta asociado 
     //en caso de que no hayan clientes mostrar "No hay clientes registrados de momento"
