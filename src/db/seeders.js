@@ -6,8 +6,9 @@ import conectarDB from '../config/db.js';
 //funcion para cargar los datos iniciales a la base de datos
 async function seedDatabase() {
     const dbName = "gestordeproyectos" //nombre de la base de datos
-    const client = await conectarDB();
-    const db = client.db(dbName)
+    const client = await conectarDB(); //conecta a la base de datos
+    const db = client.db(dbName) //regresa la base de datos con la cual hacer las consultas/inserciones
+
 
     // Insertar un cliente
     const cliente = {

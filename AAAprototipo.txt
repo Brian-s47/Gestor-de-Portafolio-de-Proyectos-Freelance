@@ -30,7 +30,7 @@ maximas , reglas generales para el desarrollo
         - inquirer
         - mongodb
 
-Estructura del menu
+
 
 tipologia de objetos: Estructura de la base de datos , collecciones y objetos que reciben
 
@@ -125,11 +125,9 @@ colleciones
 
 
             
-            
+Estructura del menu
 
-classes
 
-class Cliente{} para crear objetos de tipo cliente
 
 funcion menu() // Debe estar en app.js y desplegar un menu con opciones que redirijan a los metodos o funciones a implementar de esta manera se modulariza el codigo
 
@@ -245,6 +243,11 @@ Metodo estatico de la clase Registro.<-getRegistrosEgresos()
                         deleteRegistro() (metodo estatico de Registro.)
 
     
+
+classes
+
+class Cliente{} para crear objetos de tipo cliente
+
 async function listarClientes(){
     //devuelve un table/array/log con la lista de todos los clientes y sus datos , asi como tambien los proyectos a los cuales esta asociado 
     //en caso de que no hayan clientes mostrar "No hay clientes registrados de momento"
