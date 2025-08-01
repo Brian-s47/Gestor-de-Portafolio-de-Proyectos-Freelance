@@ -89,7 +89,7 @@ async function controlerClientes(db) {
                         type: 'list',
                         name: 'campoEditar',
                         message: '¿Qué campo desea editar?',
-                        choices: ['Nombre', 'Cédula', 'Teléfono', 'Correo']
+                        choices: ['Nombre', 'Cedula', 'Telefono', 'Correo']
                     },
                     {
                         type: 'input',

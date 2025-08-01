@@ -1,6 +1,8 @@
 import Cliente from '../models/Cliente.js';
 import { ObjectId } from 'mongodb';
 import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarTelefono } from '../utils/validadores.js';
+import chalk from 'chalk';
+import _ from 'lodash';
 
 
 /**
@@ -24,7 +26,7 @@ export async function crearCliente(data, collection) {
         }
 
         await collection.insertOne(cliente);
-        console.log('✅ Cliente creado:', cliente);
+        console.log('✅ Creado cliente con nombre: ', cliente.nombre);
     } catch (error) {
         console.error('❌ Error al crear cliente:', error.message,error);
     }
