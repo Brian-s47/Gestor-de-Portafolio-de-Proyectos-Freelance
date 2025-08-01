@@ -67,3 +67,20 @@ export function validarTextoObligatorio(input) {
     ? true
     : '❌ Este campo no puede estar vacío ni contener solo espacios.';
 }
+
+export function validarTelefono(input) {
+    const trimmed = input.trim();
+
+    if (_.isEmpty(trimmed)) {
+        return chalk.red('❌ El número de teléfono no puede estar vacío. ❌');
+    }
+
+    // Expresión: opcional + seguido SOLO de 7 a 15 dígitos
+    const regex = /^\+?[0-9]{7,15}$/;
+
+    if (!regex.test(trimmed)) {
+        return chalk.red('❌ El número debe contener solo dígitos (y opcionalmente iniciar con +), sin letras ni símbolos. ❌');
+    }
+
+    return true;
+}
