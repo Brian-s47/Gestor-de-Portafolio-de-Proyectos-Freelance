@@ -121,7 +121,6 @@ async function controlerFinanzas(db) {
         }
     }
 
-    client.close();
 }
 
 export { controlerFinanzas };
