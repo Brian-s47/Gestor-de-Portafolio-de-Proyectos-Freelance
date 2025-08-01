@@ -65,15 +65,34 @@ async function solictarDatosPropuesta(db) {
     };
 };
 // Crear Propuesta
-async function crearPropuesta(db){
+async function crearPropuesta(db) {
     const datosPropuesta = await solictarDatosPropuesta(db);
-    const propuesta = new Propuesta(datosPropuesta.nombrepropuesta, datosPropuesta.descripcion, datosPropuesta.precio, datosPropuesta.fechaInicial, datosPropuesta.fechaFinal, 'pendiente', datosPropuesta.cliente) // Instanciamos Propuesta
+
+    const propuesta = new Propuesta(
+        datosPropuesta.nombrepropuesta,
+        datosPropuesta.descripcion,
+        datosPropuesta.precio,
+        datosPropuesta.fechaInicial,
+        datosPropuesta.fechaFinal,
+        'pendiente',
+        datosPropuesta.cliente
+    );
+
     const propuestas = db.collection('propuestas');
+
     try {
         const resultado = await propuestas.insertOne(propuesta);
+
+        // ✅ Push al array de propuestas del cliente
+        await db.collection('clientes').updateOne(
+            { _id: propuesta.cliente },
+            { $push: { propuestas: resultado.insertedId } }
+        );
+
         console.log('✅ Propuesta guardada en la base de datos con Nombre:', propuesta.nombrepropuesta);
         await esperarTecla();
         return resultado;
+
     } catch (error) {
         console.error('❌ Error al insertar propuesta:', error.message);
         await esperarTecla();
@@ -262,25 +281,30 @@ async function modifiarPropuesta(db){
                 break;
             case 'fechaInicial':
             case 'fechafinal': {
-                const nuevaFecha = new Date(datoNuevo);
-                if (isNaN(nuevaFecha)) {
-                    console.log(chalk.red('❌ Fecha inválida. Usa formato YYYY-MM-DD.'));
+                    // Validar con función externa
+                    const validacion = validarFecha(datoNuevo);
+                    if (validacion !== true) {
+                        console.log(chalk.red(validacion));
+                        break;
+                    }
+                
+                    const nuevaFecha = new Date(datoNuevo);
+                    const plazos = propuestaSeleccionada.plazos || [null, null];
+                
+                    if (atributoCambiar === 'fechaInicial') {
+                        plazos[0] = nuevaFecha;
+                    } else {
+                        plazos[1] = nuevaFecha;
+                    }
+                
+                    await dbPropuestas.updateOne(
+                        { _id: new ObjectId(id) },
+                        { $set: { plazos } }
+                    );
+                
+                    console.log(`✅ Se modificó correctamente la ${atributoCambiar === 'fechaInicial' ? 'fecha inicial' : 'fecha final'}`);
                     break;
                 }
-                const plazos = propuestaSeleccionada.plazos || [null, null];
-                if (atributoCambiar === 'fechaInicial') {
-                    plazos[0] = nuevaFecha;
-                } else {
-                    plazos[1] = nuevaFecha;
-                }
-
-                await dbPropuestas.updateOne(
-                    { _id: new ObjectId(id) },
-                    { $set: { plazos } }
-                    );
-                console.log(`✅ Se modificó correctamente la ${atributoCambiar === 'fechaInicial' ? 'fecha inicial' : 'fecha final'}`);
-            break;
-            }
             case 'cliente': {
                 const clientesActivos = await db.collection('clientes').find({ estado: true }).toArray();
 
@@ -310,7 +334,6 @@ async function modifiarPropuesta(db){
         }
     await esperarTecla();
 };
-
 // Cambiar Estado Propuesta
 async function cambiarEstadoPropuesta(db){
     // Obtenermos las propuestas actuales
@@ -345,5 +368,4 @@ async function cambiarEstadoPropuesta(db){
     console.log( `Se realizo el cambio de estado de la propuesta a: ${nuevoEstado}` )
     await esperarTecla();
 };
-
 export { crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta, listarPropuestasCliente };
