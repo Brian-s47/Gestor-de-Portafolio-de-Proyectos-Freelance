@@ -10,7 +10,7 @@ import {
 import {gestorClientes, esperarTecla} from '../../cli/menus.js';
 import Cliente from '../../models/Cliente.js';
 import inquirer from 'inquirer';
-import { validarTextoNoVacioNiSimbolos } from '../../utils/validadores.js';
+import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarTelefono } from '../../utils/validadores.js';
 
 // Zona de Funciones del controlador
 async function controlerClientes(db) {
@@ -33,12 +33,14 @@ async function controlerClientes(db) {
                     {
                         type: 'input',
                         name: 'cedula',
-                        message: 'Cédula del cliente:'
+                        message: 'Cédula del cliente:',
+                        validate: validarNumeroPositivo
                     },
                     {
                         type: 'input',
                         name: 'telefono',
-                        message: 'Teléfono del cliente:'
+                        message: 'Teléfono del cliente:',
+                        validate: validarTelefono
                     },
                     {
                         type: 'input',
