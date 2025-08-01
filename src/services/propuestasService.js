@@ -56,7 +56,7 @@ async function solictarDatosPropuesta(db) {
         }))
     });
     return {
-        nombre,
+        nombrepropuesta: nombre,
         descripcion,
         precio: parseInt(precio),
         fechaInicial,
@@ -67,14 +67,16 @@ async function solictarDatosPropuesta(db) {
 // Crear Propuesta
 async function crearPropuesta(db){
     const datosPropuesta = await solictarDatosPropuesta(db);
-    const propuesta = new Propuesta(datosPropuesta.nombre, datosPropuesta.descripcion, datosPropuesta.precio, datosPropuesta.fechaInicial, datosPropuesta.fechaFinal, datosPropuesta.cliente) // Instanciamos Propuesta
+    const propuesta = new Propuesta(datosPropuesta.nombrepropuesta, datosPropuesta.descripcion, datosPropuesta.precio, datosPropuesta.fechaInicial, datosPropuesta.fechaFinal, 'pendiente', datosPropuesta.cliente) // Instanciamos Propuesta
     const propuestas = db.collection('propuestas');
     try {
         const resultado = await propuestas.insertOne(propuesta);
-        console.log('✅ Propuesta guardada en la base de datos con Nombre:', propuesta.nombre);
+        console.log('✅ Propuesta guardada en la base de datos con Nombre:', propuesta.nombrepropuesta);
+        await esperarTecla();
         return resultado;
     } catch (error) {
         console.error('❌ Error al insertar propuesta:', error.message);
+        await esperarTecla();
         throw error;
     }
 };
@@ -109,7 +111,52 @@ async function listarPropuestas(db){
             const fechaFormateadaFinal = dayjs(propuesta.plazos[1]).format('DD/MM/YYYY');
 
             return {
-                nombrepropuesta: propuesta.nombre ?? propuesta.nombrepropuesta,
+                nombrepropuesta: propuesta.nombrepropuesta,
+                descripcion: propuesta.descripcion,
+                precio: propuesta.precio,
+                plazos: [fechaFormateadaInicio, fechaFormateadaFinal],
+                cliente: datosCliente?.nombre ?? "Desconocido",
+                estado: propuesta.estado,
+            };
+        })
+    );
+        console.table(propuestasVisibles)
+        console.log(linea);
+        await esperarTecla();
+    }
+};
+// Listar propuestas por Cliente
+async function listarPropuestasCliente(db, idCliente){
+    // Obtenermos las propuestas actuales asosiadas al cliente
+    const propuestas = await db.collection('propuestas').find({cliente: idCliente}).toArray();
+    // Validacion si existen propuestas
+    if(propuestas.lenhgth === 0){
+        console.log(`No se tienen Propuestas registrados`); // Mensaje de error no existen propuestas
+        await esperarTecla();
+    } else{
+        const titulo = chalk.bold.cyan('📋 Listado de Propuestas') 
+          console.log(boxen(titulo, {
+                padding: 1,
+                margin: 1,
+                borderStyle: 'round',
+                borderColor: 'green',
+                align: 'center'
+            }));
+        const linea = chalk.gray('────────────────────────────────────────────')
+        console.log(titulo)
+        
+        // Obtener el nombre del cliente
+        const clientes = db.collection('clientes');
+
+        const propuestasVisibles = await Promise.all(
+        propuestas.map(async (propuesta) => {
+            const datosCliente = await clientes.findOne({ _id: new ObjectId(propuesta.cliente) });
+
+            const fechaFormateadaInicio = dayjs(propuesta.plazos[0]).format('DD/MM/YYYY');
+            const fechaFormateadaFinal = dayjs(propuesta.plazos[1]).format('DD/MM/YYYY');
+
+            return {
+                nombrepropuesta: propuesta.nombrepropuesta,
                 descripcion: propuesta.descripcion,
                 precio: propuesta.precio,
                 plazos: [fechaFormateadaInicio, fechaFormateadaFinal],
@@ -137,7 +184,7 @@ async function modifiarPropuesta(db){
         type: 'list',
         name: 'id',
         message: 'Selecciona una Propuesta para Editar:',
-        choices: propuestas.map(propuesta => ({ name: propuesta.nombre, value: propuesta._id }))
+        choices: propuestas.map(propuesta => ({ name: propuesta.nombrepropuesta, value: propuesta._id }))
     }
     ]);
     const { atributoCambiar, datoNuevo } = await inquirer.prompt([
@@ -160,7 +207,7 @@ async function modifiarPropuesta(db){
                 await dbPropuestas.updateOne(
                 { _id: new ObjectId(id) }, 
                 {
-                    $set: {nombre: datoNuevo}
+                    $set: {nombrepropuesta: datoNuevo}
                 });
                 console.log('Se modifico correctamente el nombre');
                 break;
@@ -207,6 +254,7 @@ async function modifiarPropuesta(db){
             default:
                 throw new Error(`El atributo no es modificable.`);
             }
+    await esperarTecla();
 };
 // Cambiar Estado Propuesta
 async function cambiarEstadoPropuesta(db){
@@ -222,7 +270,7 @@ async function cambiarEstadoPropuesta(db){
         type: 'list',
         name: 'id',
         message: 'Selecciona una Propuesta para Editar:',
-        choices: propuestas.map(propuesta => ({ name: propuesta.nombre, value: propuesta._id }))
+        choices: propuestas.map(propuesta => ({ name: propuesta.nombrepropuesta, value: propuesta._id }))
     }
     ]);
     const { nuevoEstado } = await inquirer.prompt([
@@ -235,8 +283,12 @@ async function cambiarEstadoPropuesta(db){
     ]);
     // Cambiamos estado segun ID en coleccion
     const coleccion = db.collection('propuestas');
-    await coleccion.updateOne({ _id: new ObjectId(id) },
-        { $set: { estado: nuevoEstado }});
+    await coleccion.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { estado: nuevoEstado }}
+    );
+    console.log( `Se realizo el cambio de estado de la propuesta a: ${nuevoEstado}` )
+    await esperarTecla();
 };
 
-export { crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta };
+export { crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta, listarPropuestasCliente };

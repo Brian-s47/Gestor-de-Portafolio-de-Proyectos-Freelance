@@ -1,5 +1,9 @@
+import chalk from 'chalk';
+import boxen from 'boxen';
+import { esperarTecla } from '../cli/menus.js';
 import Cliente from '../models/Cliente.js';
 import { ObjectId } from 'mongodb';
+import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarTelefono } from '../utils/validadores.js';
 
 
 /**
@@ -25,7 +29,7 @@ export async function crearCliente(data, collection) {
         await collection.insertOne(cliente);
         console.log('✅ Cliente creado:', cliente);
     } catch (error) {
-        console.error('❌ Error al crear cliente:', error.message,error);
+        console.error('❌ Error al crear cliente:', error.message);
     }
 }
 
@@ -54,7 +58,47 @@ export async function listarClientes(collection) {
         console.error('❌ Error al listar clientes:', error.message);
     }
 }
-
+// Listar Datos de cliente por Id
+export async function listarDatosCliente(db, idCliente) {
+    try {
+      const cliente = await db.collection('clientes').findOne({ _id: new ObjectId(idCliente) });
+  
+      if (!cliente) {
+        console.log(chalk.red(`❌ No se encontró un cliente con el ID proporcionado.`));
+        await esperarTecla();
+        return;
+      }
+  
+      // Mostrar cabecera con estilo
+      const titulo = chalk.bold.cyan('📋 Datos del Cliente');
+      console.log(boxen(titulo, {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'round',
+        borderColor: 'green',
+        align: 'center'
+      }));
+  
+      // Mostrar los datos del cliente
+      const datosCliente = {
+        Nombre: cliente.nombre,
+        Cédula: cliente.cedula,
+        Teléfono: cliente.telefono,
+        Correo: cliente.correo,
+        Fecha_Creación: new Date(cliente.fecha).toLocaleDateString(),
+        Estado: cliente.estado ? "Activo" : "Inactivo",
+        Propuestas: cliente.propuestas.length,
+        Proyectos: cliente.proyectos.length,
+        Deuda: `$ ${cliente.deuda ?? 0}`,
+      };
+  
+      console.table(datosCliente);
+      await esperarTecla();
+    } catch (error) {
+      console.log(chalk.red('❌ Error al consultar los datos del cliente:'), error.message);
+      await esperarTecla();
+    }
+};
 /**
  * actualizarCliente
  */
@@ -63,10 +107,26 @@ export async function actualizarCliente(id, nuevosDatos, collection) {
         // 1. Buscar el cliente actual
         const clienteActual = await collection.findOne({ _id: new ObjectId(id) });
         if (!clienteActual) {
-            return console.error('❌ Cliente no encontrado');
+            return console.error(chalk.red('❌ Cliente no encontrado'));
         }
 
-        // 2. Verificar duplicados si se intenta cambiar correo, cédula o nombre
+        // 2. Validaciones personalizadas
+        if (nuevosDatos.nombre) {
+            const val = validarTextoNoVacioNiSimbolos(nuevosDatos.nombre);
+            if (val !== true) return console.error(val);
+        }
+
+        if (nuevosDatos.cedula) {
+            const val = validarNumeroPositivo(nuevosDatos.cedula);
+            if (val !== true) return console.error(val);
+        }
+
+        if (nuevosDatos.telefono) {
+            const val = validarTelefono(nuevosDatos.telefono);
+            if (val !== true) return console.error(val);
+        }
+
+        // 3. Verificar duplicados si se intenta cambiar correo, cédula o nombre
         const camposUnicos = ['correo', 'cedula', 'nombre'];
         const condiciones = [];
 
@@ -79,20 +139,21 @@ export async function actualizarCliente(id, nuevosDatos, collection) {
         if (condiciones.length > 0) {
             const existeDuplicado = await collection.findOne({
                 $or: condiciones,
-                _id: { $ne: new ObjectId(id) } // excluye al propio cliente
+                _id: { $ne: new ObjectId(id) }
             });
 
             if (existeDuplicado) {
-                return console.error('❌ No se puede actualizar: otro cliente ya tiene ese correo, cédula o nombre');
+                return console.error(chalk.red('❌ No se puede actualizar: otro cliente ya tiene ese correo, cédula o nombre'));
             }
         }
 
-        // 3. Ejecutar la actualización
+        // 4. Ejecutar la actualización
         await collection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: nuevosDatos }
+            { _id: new ObjectId(id) },
+            { $set: nuevosDatos }
         );
-        console.log('🔄 Cliente actualizado correctamente');
+
+        console.log(chalk.green('🔄 Cliente actualizado correctamente'));
     } catch (error) {
         console.error('❌ Error al actualizar cliente:', error.message);
     }
