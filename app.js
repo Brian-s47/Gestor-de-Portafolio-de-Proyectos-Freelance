@@ -27,7 +27,7 @@ async function main() {
         console.log('Ejecutar validacion de Inicio de sesion para cliente')
         // Pondremos un condicional if si retorna correctamente el inicio de sesin redirije al menu correspondiente retornarndo el _id del cliente para que el gestor de cliente solo muestre su informacion
         // await idCliente = inicioSesionCliente()
-        const idPrueba = '688c03e3cca0e30849f857a1'; // Datos para pruebas iniciales
+        const idPrueba = '688c54b8a81406c470c926e9'; // Datos para pruebas iniciales
         const idCliente = new ObjectId(idPrueba)
         await gestionCliente(db, idCliente);
         break;

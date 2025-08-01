@@ -12,12 +12,23 @@ export function validarTextoNoVacioNiSimbolos(input) {
 }
 
 export function validarNumeroPositivo(input) {
-    if (_.isEmpty(input.trim())) {
+    const trimmed = input.trim();
+
+    if (_.isEmpty(trimmed)) {
         return chalk.red('❌ Este campo no puede estar vacío. ❌');
     }
-    const value = parseFloat(input);
-    if (isNaN(value)) return chalk.red('❌ Debes ingresar un número válido. ❌');
-    if (value < 0) return chalk.red('❌ El número no puede ser negativo. ❌');
+
+    // Validar que sea únicamente un número (entero o decimal) positivo, sin letras ni símbolos
+    const regex = /^[0-9]+(\.[0-9]+)?$/;
+    if (!regex.test(trimmed)) {
+        return chalk.red('❌ Solo se permiten números positivos sin letras ni símbolos. ❌');
+    }
+
+    const value = parseFloat(trimmed);
+    if (value <= 0) {
+        return chalk.red('❌ El número debe ser mayor que cero. ❌');
+    }
+
     return true;
 }
 
