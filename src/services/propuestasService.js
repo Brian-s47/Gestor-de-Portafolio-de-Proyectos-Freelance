@@ -45,7 +45,7 @@ async function solictarDatosPropuesta(db) {
     ]);
 
     // Obtener el Id del cliente que se le asosiara la propuesta
-    const clientesActuales = await db.collection('clientes').find().toArray();
+    const clientesActuales = await db.collection('clientes').find({ estado: true }).toArray();
     const { clienteId } = await inquirer.prompt({ 
         type: 'list',
         name: 'clienteId',
@@ -187,21 +187,54 @@ async function modifiarPropuesta(db){
         choices: propuestas.map(propuesta => ({ name: propuesta.nombrepropuesta, value: propuesta._id }))
     }
     ]);
-    const { atributoCambiar, datoNuevo } = await inquirer.prompt([
-        {
-            type: 'list',
-            name: 'atributoCambiar',
-            message: 'Seleccione el dato que desea editar',
-            choices: ['nombre', 'descripcion', 'precio', 'fechaInicial', 'fechafinal', 'cliente']
-        },
-        {
-            type: 'input',
-            name: 'datoNuevo',
-            message: `Ingrese el nuevo dato: `,
-        }
-    ]);
+    const { atributoCambiar } = await inquirer.prompt([
+    {
+        type: 'list',
+        name: 'atributoCambiar',
+        message: 'Seleccione el dato que desea editar:',
+        choices: ['nombre', 'descripcion', 'precio', 'fechaInicial', 'fechafinal', 'cliente']
+    }
+]);
+
+    // Luego solicita el nuevo valor con validación dinámica según el atributo (solo si no es cliente)
+    let datoNuevo;
+    if (atributoCambiar !== 'cliente') {
+        const respuesta = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'datoNuevo',
+                message: `Ingrese el nuevo dato para ${atributoCambiar}:`,
+                validate: (input) => {
+                    if (atributoCambiar === 'precio') {
+                        const valor = parseInt(input);
+                        if (isNaN(valor) || valor <= 0) {
+                            return '⚠️ Por favor ingresa un número válido mayor que cero.';
+                        }
+                    }
+
+                    if (['fechaInicial', 'fechafinal'].includes(atributoCambiar)) {
+                        const fecha = new Date(input);
+                        if (isNaN(fecha.getTime())) {
+                            return '⚠️ Por favor ingresa una fecha válida en formato YYYY-MM-DD.';
+                        }
+                    }
+
+                    if (['nombre', 'descripcion'].includes(atributoCambiar)) {
+                        if (!input.trim()) {
+                            return '⚠️ Este campo no puede estar vacío.';
+                        }
+                    }
+
+                    return true;
+                }
+            }
+        ]);
+        datoNuevo = respuesta.datoNuevo;
+    }
+
     // Condicional paara cambiar dato segun seleccionado
     const dbPropuestas = db.collection('propuestas');
+    const propuestaSeleccionada = await dbPropuestas.findOne({ _id: new ObjectId(id) });
     switch (atributoCambiar) { 
             case 'nombre':
                 await dbPropuestas.updateOne(
@@ -228,34 +261,56 @@ async function modifiarPropuesta(db){
                 console.log('Se modifico correctamente el precio');
                 break;
             case 'fechaInicial':
+            case 'fechafinal': {
+                const nuevaFecha = new Date(datoNuevo);
+                if (isNaN(nuevaFecha)) {
+                    console.log(chalk.red('❌ Fecha inválida. Usa formato YYYY-MM-DD.'));
+                    break;
+                }
+                const plazos = propuestaSeleccionada.plazos || [null, null];
+                if (atributoCambiar === 'fechaInicial') {
+                    plazos[0] = nuevaFecha;
+                } else {
+                    plazos[1] = nuevaFecha;
+                }
+
                 await dbPropuestas.updateOne(
-                { _id: new ObjectId(id) }, 
-                {
-                    $set: {fechaInicial: datoNuevo}
-                });
-                console.log('Se modifico correctamente la fecha inicial');
-                break;
-            case 'fechafinal':
-                await dbPropuestas.updateOne(
-                { _id: new ObjectId(id) }, 
-                {
-                    $set: {fechafinal: datoNuevo}
-                });
-                console.log('Se modifico correctamente la fecha final');
-                break;
-            case 'cliente':
-                await dbPropuestas.updateOne(
-                { _id: new ObjectId(id) }, 
-                {
-                    $set: {cliente: datoNuevo}
-                });
-                console.log('Se modifico correctamente el cliente');
-                break;
-            default:
-                throw new Error(`El atributo no es modificable.`);
+                    { _id: new ObjectId(id) },
+                    { $set: { plazos } }
+                    );
+                console.log(`✅ Se modificó correctamente la ${atributoCambiar === 'fechaInicial' ? 'fecha inicial' : 'fecha final'}`);
+            break;
             }
+            case 'cliente': {
+                const clientesActivos = await db.collection('clientes').find({ estado: true }).toArray();
+
+                if (clientesActivos.length === 0) {
+                    console.log(chalk.yellow('⚠️ No hay clientes activos disponibles para asignar ⚠️'));
+                    break;
+                }
+
+                const { clienteId } = await inquirer.prompt({
+                    type: 'list',
+                    name: 'clienteId',
+                    message: 'Seleccione el nuevo cliente asociado a la propuesta:',
+                    choices: clientesActivos.map(c => ({
+                        name: `${c.nombre} (${c.cedula})`,
+                        value: c._id.toString()
+                    }))
+                });
+
+                await db.collection('propuestas').updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { cliente: new ObjectId(clienteId) } }
+                );
+
+                console.log('✅ Se modificó correctamente el cliente asociado a la propuesta');
+                break;
+            }
+        }
     await esperarTecla();
 };
+
 // Cambiar Estado Propuesta
 async function cambiarEstadoPropuesta(db){
     // Obtenermos las propuestas actuales

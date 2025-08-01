@@ -1,7 +1,6 @@
 // Zona de importacion de librerias
 import { ObjectId } from 'mongodb'; // Para obtener el id generado por MongoDB
 
-
 // Zona de  importacion de modulos
 import { obtenerDB } from './src/config/db.js';
 import {menuPrincipal, esperarTecla}  from './src/cli/menus.js';
