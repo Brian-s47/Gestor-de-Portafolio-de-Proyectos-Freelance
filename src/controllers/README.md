@@ -1,0 +1,1 @@
+//controla los servicios del administrador y del cliente , la carpeta administrador son los servicios uqe llama el controllador administradorControler, menus que llaman metodos

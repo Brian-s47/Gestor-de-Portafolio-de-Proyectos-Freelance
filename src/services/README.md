@@ -1,0 +1,1 @@
+//funcionalidades que tienen cada una de las clases para hacer cosas
