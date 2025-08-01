@@ -8,8 +8,7 @@ export function validarTextoNoVacioNiSimbolos(input) {
         return chalk.red('❌ Este campo no puede estar vacío. ❌');
     }
     const regex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-    if (!regex.test(input)) return chalk.red('❌ Solo letras y espacios son permitidos. ❌')
-    return true;
+    return regex.test(input) ? true : chalk.red('❌ Solo letras y espacios son permitidos. ❌');
 }
 
 export function validarNumeroPositivo(input) {
@@ -19,31 +18,15 @@ export function validarNumeroPositivo(input) {
         return chalk.red('❌ Este campo no puede estar vacío. ❌');
     }
 
-    if (/[+-]/.test(trimmed)) {
-        return chalk.red('❌ No se permiten signos positivos ni negativos. ❌');
+    // Validar que sea únicamente un número (entero o decimal) positivo, sin letras ni símbolos
+    const regex = /^[0-9]+(\.[0-9]+)?$/;
+    if (!regex.test(trimmed)) {
+        return chalk.red('❌ Solo se permiten números positivos sin letras ni símbolos. ❌');
     }
 
     const value = parseFloat(trimmed);
-
-    if (isNaN(value)) {
-        return chalk.red('❌ Debes ingresar un número válido. ❌');
-    }
-
-    if (value < 0) {
-        return chalk.red('❌ El número no puede ser negativo. ❌');
-    }
-
-    return true;
-}
-export function validarTelefono(input) {
-    if (_.isEmpty(input.trim())) {
-        return chalk.red('❌ El número de teléfono no puede estar vacío. ❌');
-    }
-
-    const telefonoValido = /^\+?\d{7,15}$/.test(input.trim());
-
-    if (!telefonoValido) {
-        return chalk.red('❌ El número debe contener solo dígitos y opcionalmente iniciar con +. ❌');
+    if (value <= 0) {
+        return chalk.red('❌ El número debe ser mayor que cero. ❌');
     }
 
     return true;
@@ -83,4 +66,21 @@ export function validarTextoObligatorio(input) {
   return limpio.length > 0
     ? true
     : '❌ Este campo no puede estar vacío ni contener solo espacios.';
+}
+
+export function validarTelefono(input) {
+    const trimmed = input.trim();
+
+    if (_.isEmpty(trimmed)) {
+        return chalk.red('❌ El número de teléfono no puede estar vacío. ❌');
+    }
+
+    // Expresión: opcional + seguido SOLO de 7 a 15 dígitos
+    const regex = /^\+?[0-9]{7,15}$/;
+
+    if (!regex.test(trimmed)) {
+        return chalk.red('❌ El número debe contener solo dígitos (y opcionalmente iniciar con +), sin letras ni símbolos. ❌');
+    }
+
+    return true;
 }

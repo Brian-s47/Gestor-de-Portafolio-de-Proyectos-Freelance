@@ -244,6 +244,12 @@ async function crearProyectoTransaccion(db){
         );
         // Si todo sale bien imprimimos en consola
         console.log(`Se crea el Proyecto ${nombre}`)
+        // Paso 10: Asociar el ID del proyecto al cliente (agregar al array de proyectos)
+        await db.collection('clientes').updateOne(
+            { _id: clienteId },
+            { $push: { proyectos: idProyecto } },
+            { session } // importante: mantener en la misma transacción
+        );
     });
     await session.endSession(); // Finalizamos Session        
     }catch (error) {
