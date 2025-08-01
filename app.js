@@ -1,5 +1,5 @@
 // Zona de importacion de librerias
-
+import { ObjectId } from 'mongodb'; // Para obtener el id generado por MongoDB
 
 // Zona de  importacion de modulos
 import { obtenerDB } from './src/config/db.js';
@@ -27,9 +27,9 @@ async function main() {
         console.log('Ejecutar validacion de Inicio de sesion para cliente')
         // Pondremos un condicional if si retorna correctamente el inicio de sesin redirije al menu correspondiente retornarndo el _id del cliente para que el gestor de cliente solo muestre su informacion
         // await idCliente = inicioSesionCliente()
-        console.log('Menu de Gestion de Cliente');
-        await esperarTecla();
-        await gestionCliente();
+        const idPrueba = '688c03e3cca0e30849f857a1'; // Datos para pruebas iniciales
+        const idCliente = new ObjectId(idPrueba)
+        await gestionCliente(db, idCliente);
         break;
       case '3':
         console.log('🚀 Esta saliendo del sistema Gestor de Portafoliom de Proyectos Freelance 🚀');

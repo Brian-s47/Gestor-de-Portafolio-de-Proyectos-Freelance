@@ -19,7 +19,7 @@ async function controlerProyectos(db) {
             case '3':
             const contratoId = await seleccionarProyecto(db)
             let salirP = false;
-                while (!salir){
+                while (!salirP){
                     const opcion = await actualizacionProyectos();
                     switch (opcion) { 
                     case '1': //  Agregar Entregables
@@ -34,6 +34,7 @@ async function controlerProyectos(db) {
                     case '4':
                     console.log('🛠️ Esta volviendo al menu anterior "Menu Gestion de Proyectos" 🛠️');
                     salirP = true;
+                    break;
                 }
             }
             break;

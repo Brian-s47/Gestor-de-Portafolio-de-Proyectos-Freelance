@@ -7,6 +7,7 @@ import { ObjectId } from 'mongodb';
 
 // Zona de importacion de modulos
 import Proyecto from '../models/Proyecto.js';
+import Finanza from '../models/Finanza.js';
 import { esperarTecla }  from '../cli/menus.js';
 import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarFecha, validarTextoObligatorio } from '../utils/validadores.js'
 
@@ -35,7 +36,7 @@ async function eleccionPropuesta(db){
     })
 
     // Obtenermos el objeto completo para embeberlo en el proyecto: 
-    return propuestaSeleccionada = propuestasAceptadas.find(p => p._id.toString() === propuestaId);
+    return propuestasAceptadas.find(p => p._id.toString() === propuestaId);
 };
 // Creacion de objeto contrato 
 async function crearContrato(cliente){
@@ -175,7 +176,8 @@ async function crearProyectoTransaccion(db){
 
     //Iniciamos try/catch de trasaccion
     try {
-        // Paso 1: Ususario alije propuesta "Aceptada" para subir a proyecto
+        await session.withTransaction(async () => {
+            // Paso 1: Ususario alije propuesta "Aceptada" para subir a proyecto
         const propuesta = await eleccionPropuesta(db);
         if(!propuesta) return; // Caso de Error
 
@@ -210,39 +212,49 @@ async function crearProyectoTransaccion(db){
             propuesta,
             [],
             contrato,
-            clienteId
+            clienteId,
+            null
         );
-        // Validamos campos correctos
-        nuevoProyecto.validarCampos();
 
-        // Paso 6: Insertamos proyecto en BD -> debemos hacerlo para obtener el _ID y referencialo en finanza
-        const { insertedId: idProyecto } = await db.collection('proyectos').insertOne(nuevoProyecto, { session });
+        // Paso 6: Insertamos proyecto en DB
+        const { insertedId: idProyecto } = await db.collection('proyectos').insertOne(
+            { 
+                ...nuevoProyecto, // todos los datos de Proyecto
+                estadoDeCuenta: null // temporalmente null, para que cumpla el schema
+            },
+            { session }
+        );
 
-        // Paso 7: Instanciamos finaanzas para este proyecto
-        const nuevaFinanza = new Finanzas({
+        // Paso 7: Instanciamos finanzas para este proyecto
+        const nuevaFinanza = new Finanza({
             idCliente: clienteId,
             idProyecto,
             deudaActual: presupuesto,
             valorDisponible: 0
         });
 
-        // Paso 8: Insertamos Finanza 
+        // Paso 8: Insertamos finaanzas en DB
         const { insertedId: idFinanza } = await db.collection('finanzas').insertOne(nuevaFinanza, { session });
 
-        // Paso 9:
+        // Paso 9: Actualizamos finanza referenciada en proyecto
         await db.collection('proyectos').updateOne(
             { _id: idProyecto },
             { $set: { estadoDeCuenta: idFinanza } },
             { session }
         );
-
-        // Si todfo sale bien imprimimos en consola
-        console.log(`Se creao el Proyecto ${nombre}`)
-    }catch{// Tomamoe l error en caso de sucerer en cualquiera de los pasos
-        await session.abortTransaction(); // Abortamos la transaccion
-        await session.endSession(); // Finalizamos Session
-        console.error('❌ Error en la transacción:', error.message); // Mostramos el error en consola
-        await esperarTecla();
+        // Si todo sale bien imprimimos en consola
+        console.log(`Se crea el Proyecto ${nombre}`)
+    });
+    await session.endSession(); // Finalizamos Session        
+    }catch (error) {
+        console.error('❌ Error en la transacción:', error.message);
+        if (error.errInfo?.details) {
+            console.dir(error.errInfo.details, { depth: null });
+        }
+    await esperarTecla();
+    } finally {
+        await session.endSession();
+        await esperarTecla()
     }
 };
 // Insertar Entregable

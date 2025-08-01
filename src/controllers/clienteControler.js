@@ -30,7 +30,6 @@ async function gestionCliente(db, idCliente) { // la funcion debe recibir el ID 
             break;
         case '4':
             await listarDatosCliente(db, idCliente);
-            await esperarTecla()
         break;
         case '5':
             console.log('🛠️ Esta volviendo al menu anterior "Menu Principal Gestor" 🛠️');

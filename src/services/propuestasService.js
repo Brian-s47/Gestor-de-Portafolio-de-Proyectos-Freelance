@@ -67,14 +67,16 @@ async function solictarDatosPropuesta(db) {
 // Crear Propuesta
 async function crearPropuesta(db){
     const datosPropuesta = await solictarDatosPropuesta(db);
-    const propuesta = new Propuesta(datosPropuesta.nombrepropuesta, datosPropuesta.descripcion, datosPropuesta.precio, datosPropuesta.fechaInicial, datosPropuesta.fechaFinal, datosPropuesta.cliente) // Instanciamos Propuesta
+    const propuesta = new Propuesta(datosPropuesta.nombrepropuesta, datosPropuesta.descripcion, datosPropuesta.precio, datosPropuesta.fechaInicial, datosPropuesta.fechaFinal, 'pendiente', datosPropuesta.cliente) // Instanciamos Propuesta
     const propuestas = db.collection('propuestas');
     try {
         const resultado = await propuestas.insertOne(propuesta);
         console.log('✅ Propuesta guardada en la base de datos con Nombre:', propuesta.nombrepropuesta);
+        await esperarTecla();
         return resultado;
     } catch (error) {
         console.error('❌ Error al insertar propuesta:', error.message);
+        await esperarTecla();
         throw error;
     }
 };
@@ -165,6 +167,7 @@ async function listarPropuestasCliente(db, idCliente){
     );
         console.table(propuestasVisibles)
         console.log(linea);
+        await esperarTecla();
     }
 };
 // Modificar Propuesta
@@ -251,6 +254,7 @@ async function modifiarPropuesta(db){
             default:
                 throw new Error(`El atributo no es modificable.`);
             }
+    await esperarTecla();
 };
 // Cambiar Estado Propuesta
 async function cambiarEstadoPropuesta(db){
@@ -283,6 +287,8 @@ async function cambiarEstadoPropuesta(db){
         { _id: new ObjectId(id) },
         { $set: { estado: nuevoEstado }}
     );
+    console.log( `Se realizo el cambio de estado de la propuesta a: ${nuevoEstado}` )
+    await esperarTecla();
 };
 
 export { crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta, listarPropuestasCliente };
