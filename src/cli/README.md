@@ -2,7 +2,7 @@
 
 Este módulo contiene la definición de los distintos menús de navegación utilizados en la aplicación CLI de gestión de portafolios freelance. Utiliza una interfaz visual en consola mediante las librerías `inquirer`, `chalk` y `boxen` para ofrecer una experiencia de usuario amigable y estructurada.
 
-## 📆 Dependencias
+## 📦 Dependencias
 
 * **inquirer**: Permite generar prompts interactivos en la línea de comandos.
 * **chalk**: Proporciona estilos de color y formato en texto.
