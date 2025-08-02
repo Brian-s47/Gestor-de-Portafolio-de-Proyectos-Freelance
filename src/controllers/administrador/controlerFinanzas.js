@@ -9,7 +9,7 @@ async function controlerFinanzas(db) {
     console.clear();
 
     while (!salir) {
-        const opcion = await gestorFinanzas();
+        const opcion = await gestorFinanzas(db);
 
         switch (opcion) {
             case '1': // Listar estados de cuenta
@@ -69,7 +69,7 @@ async function controlerFinanzas(db) {
                     console.log(`🔁 Deuda restante: $${resultado.nuevaDeuda}`);
                     console.log(`📦 Estado actual: ${resultado.nuevoEstado ? 'Activo' : 'Pagado'}`);
                 } catch (error) {
-                    console.error('❌ Error al hacer el abono:', error.message);
+                    console.error('❌ Error al hacer el abono:', error.message,error);
                 }
 
                 await esperarTecla();

@@ -87,8 +87,8 @@ async function seedDatabase() {
     // Crear estado de cuenta
     const estadoDeCuenta = {
       _id: new ObjectId(),
-      IdCliente: cliente._id,
-      IdProyecto: proyecto._id,
+      idCliente: cliente._id,
+      idProyecto: proyecto._id,
       deudaActual: 1500,
       valorDisponible: 0,
       abonos: [],
