@@ -1,4 +1,4 @@
-# 📁 Gestor de Portafolio de Proyectos Freelance
+# 📁 CLI
 
 Este módulo contiene la definición de los distintos menús de navegación utilizados en la aplicación CLI de gestión de portafolios freelance. Utiliza una interfaz visual en consola mediante las librerías `inquirer`, `chalk` y `boxen` para ofrecer una experiencia de usuario amigable y estructurada.
 

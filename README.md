@@ -140,7 +140,7 @@ Puedes visualizar el seguimiento de tareas, historias de usuario y avances del p
 
 ---
 
-## 🗂 Estructura del Proyecto
+## 🗂 Arquitectura del Proyecto
 
 ```
 /config         # Configuración general del proyecto
@@ -152,6 +152,16 @@ Puedes visualizar el seguimiento de tareas, historias de usuario y avances del p
 .gitignore      # Archivos y carpetas excluidas del control de versiones
 app.js          # Punto de entrada del CLI
 ```
+
+## 📚 Documentación por módulo
+
+- [🖥️ CLI ](src/cli/README.md)
+- [⚙️ Configuración](src/config/README.md)
+- [🧭 Controladores](src/controllers/README.md)
+- [🗄️ Base de Datos](src/db/README.md)
+- [📦 Modelos](src/models/README.md)
+- [🛠️ Servicios](src/services/README.md)
+- [🔧 Utilidades](src/utils/README.md)
 
 ---
 
