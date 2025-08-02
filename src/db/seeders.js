@@ -19,7 +19,7 @@ async function seedDatabase() {
       propuestas: [],
       proyectos: [],
       pagos: [],
-      deuda: 0,
+      deuda: 1500,
       estado:true
     };
     await db.collection('clientes').insertOne(cliente);
