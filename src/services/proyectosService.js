@@ -244,6 +244,12 @@ async function crearProyectoTransaccion(db){
         );
         // Si todo sale bien imprimimos en consola
         console.log(`Se crea el Proyecto ${nombre}`)
+        // Paso 10: Asociar el ID del proyecto al cliente (agregar al array de proyectos)
+        await db.collection('clientes').updateOne(
+            { _id: clienteId },
+            { $push: { proyectos: idProyecto } },
+            { session } // importante: mantener en la misma transacción
+        );
     });
     await session.endSession(); // Finalizamos Session        
     }catch (error) {
@@ -314,9 +320,63 @@ async function actualizarFechaFinal(id, db){
     // Cambiamos Fecha final segun ID en coleccion
     await db.collection('proyectos').updateOne(
         { _id: new ObjectId(id) },
-        { $set: { 'contrato.fecha_fin': new Date(fechaFin) } }
+        { $set: { 'contratos.fecha_fin': new Date(fechaFin) } }
     );
     console.log('Se ha actualizado la fecha final correctamente')
+    await esperarTecla();
+};
+// Actualizar Entregables
+async function actualizarEntregables(id, db){
+    const proyecto = await db.collection('proyectos').findOne({ _id: new ObjectId(id) });
+
+    if (!proyecto || !proyecto.entregables || proyecto.entregables.length === 0) {
+        console.log('⚠️ Este proyecto no tiene entregables registrados.');
+        await esperarTecla();
+        return;
+    }
+
+    const { indexEntregable } = await inquirer.prompt({
+        type: 'list',
+        name: 'indexEntregable',
+        message: 'Seleccione el entregable a editar:',
+        choices: proyecto.entregables.map((entregable, index) => ({
+            name: `${index + 1}. ${entregable.descripcion}`,
+            value: index
+        }))
+    });
+
+    const { campoActualizar } = await inquirer.prompt({
+        type: 'list',
+        name: 'campoActualizar',
+        message: '¿Qué desea actualizar?',
+        choices: ['estado', 'link']
+    });
+
+    let updateValue;
+    if (campoActualizar === 'estado') {
+        const { nuevoEstado } = await inquirer.prompt({
+            type: 'list',
+            name: 'nuevoEstado',
+            message: 'Seleccione el nuevo estado:',
+            choices: ['pendiente', 'entregado', 'aprobado', 'rechazado']
+        });
+        updateValue = { [`entregables.${indexEntregable}.estado`]: nuevoEstado };
+    } else {
+        const { nuevoLink } = await inquirer.prompt({
+            type: 'input',
+            name: 'nuevoLink',
+            message: 'Ingrese el nuevo enlace de evidencia:',
+            validate: input => input.trim() !== '' ? true : '⚠️ El enlace no puede estar vacío.'
+        });
+        updateValue = { [`entregables.${indexEntregable}.link`]: nuevoLink };
+    }
+
+    await db.collection('proyectos').updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateValue }
+    );
+
+    console.log('✅ Entregable actualizado correctamente.');
     await esperarTecla();
 };
 // Listar Proyectos
@@ -339,16 +399,23 @@ async function listarProyectos(db) {
     }));
     const linea = chalk.gray('────────────────────────────────────────────');
 
+    // Obtener todos los clientes una vez para evitar múltiples consultas
+    const clientes = await db.collection('clientes').find().toArray();
+
     const proyectosVisibles = proyectos.map((proyecto) => {
         const propuesta = proyecto.propuesta || {};
-        const contrato = proyecto.contrato || {};
+        const contrato = proyecto.contratos || {};
 
-        const fechaInicio = dayjs(contrato.fecha_inicio).format('DD/MM/YYYY');
-        const fechaFin = dayjs(contrato.fecha_fin).format('DD/MM/YYYY');
+        const clienteId = contrato.cliente?.$oid || contrato.cliente || proyecto.cliente?.$oid || proyecto.cliente;
+        const clienteEncontrado = clientes.find(c => c._id.toString() === clienteId?.toString());
+        const clienteNombre = clienteEncontrado?.nombre || 'Desconocido';
+
+        const fechaInicio = contrato.fecha_inicio ? dayjs(contrato.fecha_inicio).format('DD/MM/YYYY') : 'N/D';
+        const fechaFin = contrato.fecha_fin ? dayjs(contrato.fecha_fin).format('DD/MM/YYYY') : 'N/D';
 
         return {
             Proyecto: proyecto.nombredelproyecto,
-            Cliente: contrato.cliente?.nombre || "Desconocido",
+            Cliente: clienteNombre,
             Propuesta: propuesta.nombrepropuesta || propuesta.nombre || "Sin nombre",
             Precio: propuesta.precio || "No definido",
             Plazo: `${fechaInicio} - ${fechaFin}`,
@@ -384,33 +451,71 @@ async function listarProyectosCliente(db, idCliente){
         align: 'center'
     }));
 
-    // Linea que mejora la visual y separacion
     const linea = chalk.gray('────────────────────────────────────────────');
 
-    // Mapeo del array obtenodo para mostrar los datos de forma correcta
+    // Obtenemos todos los clientes una vez para asociar por ID
+    const clientes = await db.collection('clientes').find().toArray();
+
     const proyectosVisibles = proyectos.map((proyecto) => {
-        // condicional por si esta vacio propuesta o contrato
         const propuesta = proyecto.propuesta || {};
-        const contrato = proyecto.contrato || {};
-        // ajuste de fechas para tener un formato visible 
-        const fechaInicio = dayjs(contrato.fecha_inicio).format('DD/MM/YYYY');
-        const fechaFin = dayjs(contrato.fecha_fin).format('DD/MM/YYYY');
-        // Return de datos  para imprimer en consola
+        const contrato = proyecto.contratos || {};
+
+        const clienteId = contrato.cliente?.$oid || contrato.cliente || proyecto.cliente?.$oid || proyecto.cliente;
+        const clienteEncontrado = clientes.find(c => c._id.toString() === clienteId?.toString());
+        const clienteNombre = clienteEncontrado?.nombre || "Desconocido";
+
+        const fechaInicio = contrato.fecha_inicio ? dayjs(contrato.fecha_inicio).format('DD/MM/YYYY') : 'N/D';
+        const fechaFin = contrato.fecha_fin ? dayjs(contrato.fecha_fin).format('DD/MM/YYYY') : 'N/D';
+
         return {
             Proyecto: proyecto.nombredelproyecto,
-            Cliente: contrato.cliente?.nombre || "Desconocido",
+            Cliente: clienteNombre,
             Propuesta: propuesta.nombrepropuesta || propuesta.nombre || "Sin nombre",
             Precio: propuesta.precio || "No definido",
             Plazo: `${fechaInicio} - ${fechaFin}`,
             Estado: proyecto.estado,
             Presupuesto: contrato.presupuestoInicial || "No definido",
-            Desarrollador: contrato.desarrollador || "Sin asignar"
+            Desarrollador: contrato.desarrollador || "Sin asignar",
+            Entregables: proyecto.entregables?.length || 0
         };
     });
-    // imprecion en consola
+
+    // Imprimir tabla general
     console.table(proyectosVisibles);
     console.log(linea);
-    await esperarTecla();
-};
 
-export { seleccionarProyecto, crearProyectoTransaccion, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, listarProyectosCliente };
+    // Preguntar si desea ver detalle de entregables
+    const { verDetalle } = await inquirer.prompt({
+        type: 'confirm',
+        name: 'verDetalle',
+        message: '¿Desea ver el detalle de entregables de cada proyecto?',
+        default: false
+    });
+
+    if (verDetalle) {
+        for (const proyecto of proyectos) {
+            const entregables = proyecto.entregables || [];
+
+            console.log(chalk.bold.yellow(`📦 Entregables del proyecto: ${proyecto.nombredelproyecto}`));
+
+            if (entregables.length === 0) {
+                console.log('⚠️ No hay entregables registrados para este proyecto.\n');
+                continue;
+            }
+
+            const tablaEntregables = entregables.map((ent, index) => ({
+                Nº: index + 1,
+                Descripción: ent.descripcion,
+                Fecha: dayjs(ent.fechadeentrega).format('DD/MM/YYYY'),
+                Estado: ent.estado,
+                Link: ent.link || 'Sin link'
+            }));
+
+            console.table(tablaEntregables);
+        }
+    }
+
+    await esperarTecla();
+}
+
+export { seleccionarProyecto, crearProyectoTransaccion, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, listarProyectosCliente, actualizarEntregables };
