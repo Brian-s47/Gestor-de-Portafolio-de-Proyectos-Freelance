@@ -175,3 +175,66 @@ export async function cambiarEstadoCliente(id, nuevoEstado, collection) {
         console.error('❌ Error al cambiar estado del cliente:', error.message);
     }
 }
+
+
+export async function AgregarDeudaCliente(idCliente, deuda, db, session = null) {
+    try {
+        // Validar deuda
+        if (typeof deuda !== 'number' || deuda <= 0) {
+            throw new Error('La deuda debe ser un número positivo.');
+        }
+
+        // Opciones para pasar a Mongo: con o sin sesión
+        const options = session ? { session } : {};
+
+        // Buscar el cliente
+        const cliente = await db.collection('clientes').findOne(
+            { _id: new ObjectId(idCliente) },
+            options
+        );
+        if (!cliente) {
+            throw new Error('Cliente no encontrado.');
+        }
+
+        // Actualizar la deuda
+        await db.collection('clientes').updateOne(
+            { _id: new ObjectId(idCliente) },
+            { $inc: { deuda: deuda } },
+            options
+        );
+
+        console.log(`✅ Deuda de $${deuda} agregada al cliente ${cliente.nombre}.`);
+    } catch (error) {
+        console.error('❌ Error al agregar deuda al cliente:', error.message);
+        throw error; // importante si se usa dentro de una transacción
+    }
+}
+
+
+export async function abonoCliente(collection,idCliente,monto,pago){
+
+    try {
+        const cliente = await collection.findOne({ _id: new ObjectId(idCliente) });
+        if (!cliente) {
+            throw new Error('❌ Cliente no encontrado.');
+        }
+
+        // Actualizar deuda del cliente
+        const nuevaDeuda = Math.max(0, cliente.deuda - monto);
+        await collection.updateOne(
+            { _id: new ObjectId(idCliente) },
+            {
+                $set: { deuda: nuevaDeuda },
+                $push: { pagos: pago }
+            }
+        );
+
+        console.log(`✅ Abono de $${monto} registrado para el cliente ${cliente.nombre}. Nueva deuda: $${nuevaDeuda}`);
+        
+    } catch (error) {
+        console.error('❌ Error al registrar abono del cliente:', error.message);
+        
+    }
+
+
+}

@@ -1,6 +1,7 @@
 import Finanzas from '../models/Finanza.js';
 import { ObjectId } from 'mongodb';
 import dayjs from 'dayjs';
+import { abonoCliente } from './clientesService.js';
 
 
 export async function crearFinanza(data, collection) {
@@ -24,7 +25,7 @@ export async function crearFinanza(data, collection) {
         throw error;
     }
 }
-
+        
 
 export async function obtenerFinanzas(db) {
     const estadoDeCuentaCol = db.collection('estadoDeCuenta');
@@ -36,8 +37,8 @@ export async function obtenerFinanzas(db) {
     const finanzasConNombres = [];
 
     for (const finanza of finanzas) {
-        const cliente = await clientesCol.findOne({ _id: finanza.IdCliente });
-        const proyecto = await proyectosCol.findOne({ _id: finanza.IdProyecto });
+        const cliente = await clientesCol.findOne({ _id: finanza.idCliente });
+        const proyecto = await proyectosCol.findOne({ _id: finanza.idProyecto });
 
         finanzasConNombres.push({
             ...finanza,
@@ -92,6 +93,7 @@ export async function listarFinanzas(db) {
 export async function registrarAbono(db, _id, monto, descripcion) {
     const collection = db.collection('estadoDeCuenta');
     const finanza = await collection.findOne({ _id: new ObjectId(_id) });
+    const colecctionClientes = db.collection('clientes');
 
     if (!finanza) {
         throw new Error('❌ No se encontró el estado de cuenta del proyecto.');
@@ -103,6 +105,13 @@ export async function registrarAbono(db, _id, monto, descripcion) {
 
     const nuevaDeuda = Math.max(0, finanza.deudaActual - monto);
     const nuevoEstado = nuevaDeuda === 0 ? false : true;
+    const pago = {
+        idProyecto: finanza.idProyecto,
+        descripcion,
+        monto,
+        fecha: new Date()
+    };
+    await abonoCliente(colecctionClientes, finanza.idCliente, monto, pago);
 
     const resultado = await collection.updateOne(
         { _id: new ObjectId(_id) },
