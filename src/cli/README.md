@@ -1,69 +1,151 @@
-# CLI
+# 📁 Gestor de Portafolio de Proyectos Freelance
 
-**menu.js** -> Creacion y estructuracion de los menus en metodos que podran ser llamados a futuro en otros modulos, incluye el GUI para el usuario.
+Este módulo contiene la definición de los distintos menús de navegación utilizados en la aplicación CLI de gestión de portafolios freelance. Utiliza una interfaz visual en consola mediante las librerías `inquirer`, `chalk` y `boxen` para ofrecer una experiencia de usuario amigable y estructurada.
 
-## Lista de funciones
+## 📆 Dependencias
 
-## **async function  menuPrincipal()**
-Acceso principal al sistema, incluye el uso de chalk para mejorar la visual en consola, contiene las siguientes opciones en forma de lista:
-- **Menu de Gestion de Administrador (Developer):** Para acceder al sistema principal de gestion de clientes,propuestas,proyectos y finanzas
-- **Menu de Gestion de Cliente:** Para que el cliente pueda accerder a su registro personal de informacion almacenada en la base de datos
-- **Salir del sistema de gestion:** Detiene y cierra la ejecucion del programa
+* **inquirer**: Permite generar prompts interactivos en la línea de comandos.
+* **chalk**: Proporciona estilos de color y formato en texto.
+* **boxen**: Encierra texto en cajas estilizadas para una mejor presentación.
 
+---
 
-## **async function gestorAdministrador()**
-Menu de acceso del administrador, incluye el despliege de las siguientes opciones:
-- **Gestion de Clientes:** Para accerder a las opciones que esten relacionadas con un cliente en espeficico
-- **Gestion de Propuestas:** Para acceder a las opciones que esten relacionadas con el manejo de propuestas
-- **Gestion de Proyectos:** Para acceder a las opciones relacionadas con proyectos
-- **Gestion de Finanzas:** Para accerder a las opciones relacionadas con estados de cuenta ingresos y egresos
+## 📂 Estructura del archivo `menus.js`
 
-## **async function gestorClientes()**
-Acceso al CRUD de clientes , despliega las siguientes opciones:
-- **Registrar Cliente:** Ejecutar el registro del cliente.
-- **Modificar Cliente:** Permite editar y actualizar la informacion del cliente.
-- **Listar Cliente:** Permite detallar los distintos clientes de la base de datos.
-- **Cambiar estado de Cliente:** Permite modificar solo el parametro estado.
+El archivo define diferentes funciones asíncronas que generan los menús para distintos roles y acciones del sistema.
 
-## **async function gestorFinanzas()**
-Despliegue de opciones de gestion de fiananzas:
-- **Listar estados de cuenta:** Muestra todos los movimientos financieros
-- **Hacer abono:** Permite agregar un abono a un proyecto preexistente
-- **Registrar salida:**: Permite registrar un egreso
-- **Volvera al menu anterior**:
+---
 
-## **async function gestorPropuestas()**
-Despliege del menu para la gestion de propuestas
-- **Crear Propuesta:** Accede a las opciones de creacion de propuesta
-- **Modificar Propuesta** Permite acceder a las opciones de modificacion de la propuesta 
-- **Listar Propuesta** Lista todas las propuestas dispoibles
-- **Cambiar Estado Propuesta** Cambia los estados de una propuesta
-- **Volver al menu anterior** 
+## 📋 Menús Principales
 
-## **async function gestorProyectos**
-Menu para iniciar CRUD de un proyecto
-- **Crear Proyecto:** Inica el prompt para iniciar el proyecto
-- **Listar Proyectos:** Lista todos los proyectos disponibles de momento
-- **Actualizar Proyectos:** Actualiza un proyecto en especifico
-- **Volver al menu anterior:**
+```javascript
+async function menuPrincipal()
+```
 
-## **async function actualizacionProyectos()**
-Menu para actualizar datos internos del objeto proyecto
-- **Agregar Entregables**: Añade entregables a un proyecto en especifico
-- **Actualizar estado**: Actualiza el estado de un entregable
-- **Actualizar Fecha Final** :Actualiza la fecha de un entregable
-- **Volver al menu anterior**:
+Despliega el menú principal con las siguientes opciones:
 
+* `Menu de Gestion de Administrador (Developer)`: Acceso completo al sistema para gestionar clientes, propuestas, proyectos y finanzas.
+* `Menu de Gestion de Cliente`: Acceso restringido para que el cliente visualice su información personal, financiera y proyectos asociados.
+* `Salir del sistema de gestion`: Finaliza la ejecución del sistema.
 
-## **async function gestorCliente()**
-Menu para interaccion con un cliente en especifico en el que prodra visualizas todos los datos relacionados con el con las siguientes opciones.
+---
 
-- **Ver Proyectos**: Lista todas las propuestas del cliente
-- **Ver propuestas**: Lista todos los proyectos del cliente
-- **Ver Estado financiero** Lista el estado financiero del cliente
-- **Ver datos personales** Lista informacion personal del cliente
---**Salir del sistema de gestion: ""Menu Principal Gestor"**
+## 👨‍💼 Menú Administrador
 
-## **async function esperarTecla()**
+```javascript
+async function gestorAdministrador()
+```
 
-Funcion auxiliar para la espera de un input en consola con la finalidad de transicionar de menus a menus o como un placer holder para funcionalidades a desarrollar
+Permite al administrador acceder a los siguientes submenús:
+
+* `Gestion de Clientes`: Registro, modificación y listado de clientes.
+* `Gestion de Propuestas`: Creación y edición de propuestas comerciales.
+* `Gestion de Proyectos`: Administración del ciclo de vida de proyectos.
+* `Gestion de Finanzas`: Control financiero, incluyendo ingresos y egresos.
+* `Salir al menú principal`: Retorna al menú principal del sistema.
+
+---
+
+## 👥 Menú de Gestión de Clientes
+
+```javascript
+async function gestorClientes()
+```
+
+Opciones CRUD relacionadas con los clientes:
+
+* `Registrar Cliente`: Permite dar de alta un nuevo cliente en el sistema.
+* `Modificar Cliente`: Edita los datos existentes de un cliente.
+* `Listar Cliente`: Muestra una lista de todos los clientes registrados.
+* `Cambiar Estado Cliente`: Cambia el estado activo/inactivo del cliente.
+* `Volver al menú anterior`: Regresa al menú del administrador.
+
+---
+
+## 💰 Menú de Gestión Financiera
+
+```javascript
+async function gestorFinanzas()
+```
+
+Permite visualizar y gestionar la información financiera:
+
+* `Listar estados de cuenta`: Muestra un resumen financiero de cada cliente.
+* `Hacer abono`: Registra pagos realizados por parte del cliente.
+* `Registrar salida`: Permite registrar egresos financieros.
+* `Volver al menú anterior`: Regresa al menú del administrador.
+
+---
+
+## 📟 Menú de Gestión de Propuestas
+
+```javascript
+async function gestorPropuestas()
+```
+
+Permite al administrador manejar propuestas enviadas a clientes:
+
+* `Crear Propuesta`: Permite crear una nueva propuesta comercial.
+* `Modificar Propuesta`: Edita los detalles de una propuesta existente.
+* `Listar Propuestas`: Muestra un listado general de las propuestas.
+* `Cambiar Estado de Propuesta`: Actualiza el estado de una propuesta.
+* `Volver al menú anterior`: Regresa al menú del administrador.
+
+---
+
+## 🚧 Menú de Gestión de Proyectos
+
+```javascript
+async function gestorProyectos()
+```
+
+Facilita la gestión de proyectos registrados en el sistema:
+
+* `Crear Proyecto`: Inicia un nuevo proyecto con datos asociados.
+* `Listar Proyectos`: Muestra una lista de todos los proyectos.
+* `Actualizar Proyectos`: Permite modificar información de proyectos.
+* `Volver al menú anterior`: Regresa al menú del administrador.
+
+```javascript
+async function actualizacionProyectos()
+```
+
+Submenú específico para actualizar atributos de un proyecto:
+
+* `Agregar Entregables`: Añade entregables nuevos a un proyecto existente.
+* `Actualizar Estado`: Cambia el estado de avance del proyecto.
+* `Actualizar Fecha Final`: Modifica la fecha de finalización prevista.
+* `Actualizar Entregables`: Edita los entregables previamente registrados.
+* `Volver al menú anterior`: Retorna al menú anterior de gestión de proyectos.
+
+---
+
+## 🧑‍💼 Menú Cliente
+
+```javascript
+async function gestorCliente()
+```
+
+Menú dirigido a los clientes para visualizar su información:
+
+* `Ver Proyectos`: Muestra los proyectos en los que está involucrado.
+* `Ver Propuestas`: Muestra las propuestas que se le han enviado.
+* `Ver Estado Financiero`: Visualiza su estado de cuenta y pagos.
+* `Ver Datos Personales`: Muestra la información registrada del cliente.
+* `Salir al menú principal`: Regresa al menú principal del sistema.
+
+---
+
+## ⌨️ Funciones Auxiliares
+
+```javascript
+async function esperarTecla()
+```
+
+Espera una acción del usuario (Enter) antes de continuar. Es útil como pausa entre transiciones de menú o pasos secuenciales.
+
+---
+
+## 📌 Uso Recomendado
+
+Este módulo debe importarse en el archivo principal de la CLI y las funciones se deben encadenar lógicamente según el flujo del sistema, facilitando la navegación entre menús y la gestión de información del portafolio freelance.
