@@ -1,5 +1,7 @@
 import Finanzas from '../models/Finanza.js';
 import { ObjectId } from 'mongodb';
+import dayjs from 'dayjs';
+
 
 export async function crearFinanza(data, collection) {
     try {
@@ -59,16 +61,16 @@ export async function listarFinanzas(db) {
             const abonos = Array.isArray(finanza.abonos) ? finanza.abonos : [];
             if (abonos.length > 0) {
                 abonos.forEach((abono, j) => {
-                    console.log(`   ✅ Abono ${j + 1}: Descripcion: ${abono.descripcion} - Fecha: ${abono.fecha}, Monto: $${abono.monto}`);
+                    console.log(`   ✅ Abono ${j + 1}: Descripcion: ${abono.descripcion} - Fecha: ${dayjs(abono.fecha).format('YYYY-MM-DD HH:mm')}, - Monto: $${abono.monto}`);
                 });
             } else {
                 console.log('   ❌ No hay abonos registrados.');
             }
 
-            const gastos = Array.isArray(finanza.gastos) ? finanza.gastos : [];
-            if (gastos.length > 0) {
-                gastos.forEach((gasto, j) => {
-                    console.log(`   ✅ Gastos ${j + 1}: Descripcion: ${gasto.descripcion} - Fecha: ${gasto.fecha}, Valor: $${gasto.valor}`);
+            const costos = Array.isArray(finanza.costos) ? finanza.costos : [];
+            if (costos.length > 0) {
+                costos.forEach((costo, j) => {
+                    console.log(`   ✅ Costo ${j + 1}: Descripcion: ${costo.descripcion} - Fecha: ${dayjs(costo.fecha).format('YYYY-MM-DD HH:mm')}, Valor: $${costo.valor}`);
                 });
             } else {
                 console.log('   ❌ No hay gastos registrados.');
@@ -87,11 +89,16 @@ export async function listarFinanzas(db) {
 }
 
 
-export async function registrarAbono(db, _id, monto,descripcion) {
+export async function registrarAbono(db, _id, monto, descripcion) {
     const collection = db.collection('estadoDeCuenta');
-    const finanza = await collection.findOne({ _id: new ObjectId(_id) })
+    const finanza = await collection.findOne({ _id: new ObjectId(_id) });
+
     if (!finanza) {
         throw new Error('❌ No se encontró el estado de cuenta del proyecto.');
+    }
+
+    if (monto > finanza.deudaActual) {
+        throw new Error(`❌ El monto del abono ($${monto}) excede la deuda actual ($${finanza.deudaActual}).`);
     }
 
     const nuevaDeuda = Math.max(0, finanza.deudaActual - monto);
@@ -101,14 +108,18 @@ export async function registrarAbono(db, _id, monto,descripcion) {
         { _id: new ObjectId(_id) },
         {
             $inc: {
-                valorDisponible: monto,
+                valorDisponible: monto
             },
             $set: {
                 deudaActual: nuevaDeuda,
                 estado: nuevoEstado
             },
             $push: {
-                abonos: {descripcion: descripcion, monto, fecha: new Date() }
+                abonos: {
+                    descripcion: descripcion,
+                    monto,
+                    fecha: new Date()
+                }
             }
         }
     );
@@ -120,32 +131,37 @@ export async function registrarAbono(db, _id, monto,descripcion) {
         actualizado: resultado.modifiedCount === 1
     };
 }
-
 export async function agregarCosto(collection, idProyecto, costo) {
     const finanza = await collection.findOne({ idProyecto });
+
     if (!finanza) {
         console.error('❌ No se encontró una finanza con ese ID de proyecto.');
         return;
     }
 
-    const nuevaDeuda = finanza.deudaActual + costo.valor;
+    if (finanza.valorDisponible < costo.valor) {
+        console.error(`❌ Fondos insuficientes. Disponible: $${finanza.valorDisponible}, requerido: $${costo.valor}`);
+        return;
+    }
+
+    const nuevoDisponible = finanza.valorDisponible - costo.valor;
 
     const resultado = await collection.updateOne(
         { idProyecto },
         {
             $inc: {
-                deudaActual: costo.valor
+                valorDisponible: -costo.valor // restamos el egreso del disponible
             },
             $push: {
                 costos: { ...costo, fecha: new Date() },
             },
             $set: {
-                estado: true // cualquier nuevo costo vuelve a activar
+                estado: true // aún activo
             }
         }
     );
 
-    console.log(`✅ Egreso de $${costo.valor} agregado. Nueva deuda: $${nuevaDeuda}`);
+    console.log(`✅ Egreso de $${costo.valor} agregado. Nuevo disponible: $${nuevoDisponible}`);
 }
 
 

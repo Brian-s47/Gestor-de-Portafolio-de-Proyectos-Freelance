@@ -4,6 +4,7 @@ import { esperarTecla } from '../cli/menus.js';
 import Cliente from '../models/Cliente.js';
 import { ObjectId } from 'mongodb';
 import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarTelefono } from '../utils/validadores.js';
+import _ from 'lodash';
 
 
 /**
@@ -27,9 +28,9 @@ export async function crearCliente(data, collection) {
         }
 
         await collection.insertOne(cliente);
-        console.log('✅ Cliente creado:', cliente);
+        console.log('✅ Creado cliente con nombre: ', cliente.nombre);
     } catch (error) {
-        console.error('❌ Error al crear cliente:', error.message);
+        console.error('❌ Error al crear cliente:', error.message,error);
     }
 }
 
@@ -61,26 +62,26 @@ export async function listarClientes(collection) {
 // Listar Datos de cliente por Id
 export async function listarDatosCliente(db, idCliente) {
     try {
-      const cliente = await db.collection('clientes').findOne({ _id: new ObjectId(idCliente) });
-  
-      if (!cliente) {
+    const cliente = await db.collection('clientes').findOne({ _id: new ObjectId(idCliente) });
+
+    if (!cliente) {
         console.log(chalk.red(`❌ No se encontró un cliente con el ID proporcionado.`));
         await esperarTecla();
         return;
-      }
-  
-      // Mostrar cabecera con estilo
-      const titulo = chalk.bold.cyan('📋 Datos del Cliente');
-      console.log(boxen(titulo, {
+    }
+
+    // Mostrar cabecera con estilo
+    const titulo = chalk.bold.cyan('📋 Datos del Cliente');
+    console.log(boxen(titulo, {
         padding: 1,
         margin: 1,
         borderStyle: 'round',
         borderColor: 'green',
         align: 'center'
-      }));
-  
-      // Mostrar los datos del cliente
-      const datosCliente = {
+    }));
+
+    // Mostrar los datos del cliente
+    const datosCliente = {
         Nombre: cliente.nombre,
         Cédula: cliente.cedula,
         Teléfono: cliente.telefono,
@@ -90,13 +91,13 @@ export async function listarDatosCliente(db, idCliente) {
         Propuestas: cliente.propuestas.length,
         Proyectos: cliente.proyectos.length,
         Deuda: `$ ${cliente.deuda ?? 0}`,
-      };
-  
-      console.table(datosCliente);
-      await esperarTecla();
+    };
+
+    console.table(datosCliente);
+    await esperarTecla();
     } catch (error) {
-      console.log(chalk.red('❌ Error al consultar los datos del cliente:'), error.message);
-      await esperarTecla();
+        console.log(chalk.red('❌ Error al consultar los datos del cliente:'), error.message);
+    await esperarTecla();
     }
 };
 /**
