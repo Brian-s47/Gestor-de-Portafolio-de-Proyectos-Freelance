@@ -171,102 +171,140 @@ async function seleccionarProyecto(db){
 
 // Funciones de CRUD
 // Crear Proyecto
-async function crearProyectoTransaccion(db){
-    // Creamos session para transaccion
+async function crearProyectoTransaccion(db, datosOpcionales = null) {
     const session = db.client.startSession();
 
-    //Iniciamos try/catch de trasaccion
     try {
         await session.withTransaction(async () => {
-            // Paso 1: Ususario alije propuesta "Aceptada" para subir a proyecto
-        const propuesta = await eleccionPropuesta(db);
-        if(!propuesta) return; // Caso de Error
+            let propuesta;
+            let nombreProyecto;
+            let descripcion;
+            let contrato;
+            let cliente;
+            let clienteId;
 
-        // Paso 2: Usuario ingresa Nombre y descripcion del Proyecto
-        const { nombre, descripcion} = await inquirer.prompt([
-            {
-                type: 'input',
-                name: 'nombre',
-                message: 'Nombre del Proyecto:',
-                validate: validarTextoNoVacioNiSimbolos
-            },
-            {
-                type: 'input',
-                name: 'descripcion',
-                message: 'Descripcion de la Propuesta:',
-                validate: validarTextoObligatorio
+            // 🧑 Modo interactivo (CLI)
+            if (!datosOpcionales) {
+                propuesta = await eleccionPropuesta(db);
+                if (!propuesta) return;
+
+                const respuesta = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'nombre',
+                        message: 'Nombre del Proyecto:',
+                        validate: validarTextoNoVacioNiSimbolos
+                    },
+                    {
+                        type: 'input',
+                        name: 'descripcion',
+                        message: 'Descripcion del Proyecto:',
+                        validate: validarTextoObligatorio
+                    }
+                ]);
+
+                nombreProyecto = respuesta.nombre;
+                descripcion = respuesta.descripcion;
+
+                clienteId = propuesta.cliente;
+                cliente = await db.collection('clientes').findOne(
+                    { _id: clienteId },
+                    { session }
+                );
+
+                if (!cliente) throw new Error("Cliente no encontrado en modo interactivo");
+
+                contrato = await crearContrato(cliente);
+            } else {
+                // 📦 Modo seeder automático
+                if (datosOpcionales.cliente) {
+                    cliente = datosOpcionales.cliente;
+                    clienteId = cliente._id;
+
+                    // Inserta el cliente dentro de la transacción
+                    await db.collection('clientes').insertOne(cliente, { session });
+                } else {
+                    // Si no hay cliente en datosOpcionales, extraer desde la propuesta
+                    clienteId = datosOpcionales.propuesta.cliente;
+                }
+
+                propuesta = datosOpcionales.propuesta;
+                nombreProyecto = datosOpcionales.nombre;
+                descripcion = datosOpcionales.descripcion;
+                contrato = datosOpcionales.contrato;
+
+                // 👇 1. Insertar propuesta en colección 'propuestas'
+                await db.collection('propuestas').insertOne(propuesta, { session });
+
+                // 👇 2. Embeder la propuesta en el cliente (por ID)
+                await db.collection('clientes').updateOne(
+                    { _id: propuesta.cliente },
+                    { $push: { propuestas: propuesta._id } },
+                    { session }
+                );
+
             }
-        ]);
 
-        // Paso 3: Obtener el cliente
-        const clienteEmbebido = await db.collection('clientes').findOne({ _id: propuesta.cliente });
-        const clienteId = new ObjectId(clienteEmbebido._id);
+            // Seguridad: asegurar que clienteId sea ObjectId
+            clienteId = clienteId instanceof ObjectId ? clienteId : new ObjectId(clienteId);
+            const presupuesto = contrato.presupuestoInicial;
 
-        // Paso 4: Crear Contrato con funcion Externa
-        const contrato = await crearContrato(clienteEmbebido);
-        const presupuesto = contrato.presupuestoInicial; // Traemos el presupuesto para la estancia de Finanza
+            // Crear proyecto
+            const nuevoProyecto = new Proyecto(
+                nombreProyecto,
+                [descripcion],
+                propuesta,
+                datosOpcionales?.entregables || [],
+                contrato,
+                clienteId,
+                null
+            );
 
-        // Paso 5: Instanciamo Proyecto
-        const nuevoProyecto = new Proyecto(
-            nombre,
-            [descripcion],
-            propuesta,
-            [],
-            contrato,
-            clienteId,
-            null
-        );
+            const { insertedId: idProyecto } = await db.collection('proyectos').insertOne(
+                { ...nuevoProyecto, estadoDeCuenta: null },
+                { session }
+            );
 
-        // Paso 6: Insertamos proyecto en DB
-        const { insertedId: idProyecto } = await db.collection('proyectos').insertOne(
-            { 
-                ...nuevoProyecto, // todos los datos de Proyecto
-                estadoDeCuenta: null // temporalmente null, para que cumpla el schema
-            },
-            { session }
-        );
+            // Crear finanza
+            const nuevaFinanza = new Finanza({
+                idCliente: clienteId,
+                idProyecto,
+                deudaActual: presupuesto,
+                valorDisponible: 0,
+                abonos: [],
+                costos: [],
+                estado: true
+            });
 
-        // Paso 7: Instanciamos finanzas para este proyecto
-        const nuevaFinanza = new Finanza({
-            idCliente: clienteId,
-            idProyecto,
-            deudaActual: presupuesto,
-            valorDisponible: 0,
-            abonos: [],
-            costos: [],
-            estado: true
+            const { insertedId: idFinanza } = await db.collection('estadoDeCuenta').insertOne(nuevaFinanza, { session });
+
+            // Agregar deuda
+            await AgregarDeudaCliente(clienteId, presupuesto, db, session);
+
+            // Relacionar finanza con proyecto
+            await db.collection('proyectos').updateOne(
+                { _id: idProyecto },
+                { $set: { estadoDeCuenta: idFinanza } },
+                { session }
+            );
+
+            // Relacionar proyecto con cliente
+            await db.collection('clientes').updateOne(
+                { _id: clienteId },
+                { $push: { proyectos: idProyecto } },
+                { session }
+            );
+
+            console.log(`✅ Proyecto '${nombreProyecto}' creado correctamente.`);
         });
-
-        // Paso 8: Insertamos finanzas en DB
-        const { insertedId: idFinanza } = await db.collection('estadoDeCuenta').insertOne(nuevaFinanza, { session });
-        await AgregarDeudaCliente(clienteId, presupuesto, db, session); // Actualizamos la deuda del cliente
-
-        // Paso 9: Actualizamos finanza referenciada en proyecto
-        await db.collection('proyectos').updateOne(
-            { _id: idProyecto },
-            { $set: { estadoDeCuenta: idFinanza } },
-            { session }
-        );
-        // Si todo sale bien imprimimos en consola
-        console.log(`Se crea el Proyecto ${nombre}`)
-        // Paso 10: Asociar el ID del proyecto al cliente (agregar al array de proyectos)
-        await db.collection('clientes').updateOne(
-            { _id: clienteId },
-            { $push: { proyectos: idProyecto } },
-            { session } // importante: mantener en la misma transacción
-        );
-    });    
-    }catch (error) {
+    } catch (error) {
         console.error('❌ Error en la transacción:', error.message);
-        if (error.errInfo?.details) {
-            console.dir(error.errInfo.details, { depth: null });
-        }
-    await esperarTecla();
     } finally {
         await session.endSession();
-        await esperarTecla()
+        await esperarTecla?.(); // solo se ejecuta si existe
     }
-};
+}
+
 // Insertar Entregable
 async function insertarEntregables(id, db){
     // inicializamos variables para condiciones y bandera de ciclo while
@@ -522,4 +560,4 @@ async function listarProyectosCliente(db, idCliente){
     await esperarTecla();
 }
 
-export { seleccionarProyecto, crearProyectoTransaccion, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, listarProyectosCliente, actualizarEntregables };
+export { seleccionarProyecto,  crearProyectoTransaccion, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, listarProyectosCliente, actualizarEntregables };

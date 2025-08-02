@@ -179,26 +179,26 @@ export async function cambiarEstadoCliente(id, nuevoEstado, collection) {
 
 export async function AgregarDeudaCliente(idCliente, deuda, db, session = null) {
     try {
-        // Validar deuda
         if (typeof deuda !== 'number' || deuda <= 0) {
             throw new Error('La deuda debe ser un número positivo.');
         }
 
-        // Opciones para pasar a Mongo: con o sin sesión
         const options = session ? { session } : {};
+        const clienteId = idCliente instanceof ObjectId ? idCliente : new ObjectId(idCliente);
 
-        // Buscar el cliente
+        // Buscar el cliente con id normalizado
         const cliente = await db.collection('clientes').findOne(
-            { _id: new ObjectId(idCliente) },
+            { _id: clienteId },
             options
         );
+
         if (!cliente) {
             throw new Error('Cliente no encontrado.');
         }
 
         // Actualizar la deuda
         await db.collection('clientes').updateOne(
-            { _id: new ObjectId(idCliente) },
+            { _id: clienteId },
             { $inc: { deuda: deuda } },
             options
         );
@@ -206,7 +206,7 @@ export async function AgregarDeudaCliente(idCliente, deuda, db, session = null) 
         console.log(`✅ Deuda de $${deuda} agregada al cliente ${cliente.nombre}.`);
     } catch (error) {
         console.error('❌ Error al agregar deuda al cliente:', error.message);
-        throw error; // importante si se usa dentro de una transacción
+        throw error;
     }
 }
 

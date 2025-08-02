@@ -1,14 +1,17 @@
 // datos iniciales de prueba
 import { ObjectId } from 'mongodb';
 import { conectarDB } from '../config/db.js';
+import { crearPropuesta } from '../services/propuestasService.js';
+import { crearProyectoTransaccion } from '../services/proyectosService.js';
 
-// función para cargar los datos iniciales a la base de datos
 async function seedDatabase() {
   const client = await conectarDB(); // conexión asegurada
   const db = client.db("gestordeproyectos");
 
   try {
-    // Insertar un cliente
+    console.log("✅ Conectado a MongoDB: Atlas");
+
+    // Crear cliente
     const cliente = {
       _id: new ObjectId(),
       nombre: "Juan Perez",
@@ -20,11 +23,10 @@ async function seedDatabase() {
       proyectos: [],
       pagos: [],
       deuda: 0,
-      estado:true
+      estado: true
     };
-    await db.collection('clientes').insertOne(cliente);
 
-    // Insertar una propuesta
+    // Crear propuesta asociada
     const propuesta = {
       _id: new ObjectId(),
       nombrepropuesta: "Propuesta Diseño Web",
@@ -34,23 +36,28 @@ async function seedDatabase() {
       estado: "pendiente",
       cliente: cliente._id
     };
-    await db.collection('propuestas').insertOne(propuesta);
 
-    await db.collection('clientes').updateOne(
-      { _id: cliente._id },
-      { $push: { propuestas: propuesta._id } }
-    );
-
-    // Crear un proyecto
-    const proyecto = {
-      _id: new ObjectId(),
-      nombredelproyecto: "Sitio Web Portafolio",
-      descripcion: [
-        "El proyecto consiste en el desarrollo de un sitio web estático con HTML, CSS y JavaScript.",
-        "El objetivo es presentar los trabajos de diseño del cliente de forma profesional y accesible.",
-        "Debe ser responsive, incluir secciones para portfolio, contacto y presentación personal."
+    // Crear contrato
+    const contrato = {
+      condiciones: [
+        "El cliente debe proporcionar el contenido (textos e imágenes)",
+        "Se permiten hasta 2 revisiones por entregable",
+        "El pago debe realizarse en dos partes: 50% al inicio y 50% al final"
       ],
-      propuesta: propuesta, // embebida
+      fecha_inicio: new Date("2025-08-01"),
+      fecha_fin: new Date("2025-09-01"),
+      presupuestoInicial: 1500,
+      cliente: cliente._id,
+      desarrollador: "Ana Gómez"
+    };
+
+    // Ejecutar todo el flujo dentro de la transacción
+    await crearProyectoTransaccion(db, {
+      cliente,       // el cliente se inserta dentro de la transacción
+      propuesta,     // también se embebe en el proyecto
+      contrato,      // usado para el proyecto y la finanza
+      nombre: "Sitio Web Portafolio",
+      descripcion: "Sitio responsive para mostrar el portafolio del cliente.",
       entregables: [
         {
           descripcion: "Wireframes y estructura base del sitio",
@@ -58,57 +65,14 @@ async function seedDatabase() {
           estado: "pendiente",
           link: null
         }
-      ],
-      estado: "activo",
-      contratos: {
-        condiciones: [
-          "El cliente debe proporcionar el contenido (textos e imágenes)",
-          "Se permiten hasta 2 revisiones por entregable",
-          "El pago debe realizarse en dos partes: 50% al inicio y 50% al final"
-        ],
-        fecha_inicio: new Date("2025-08-01"),
-        fecha_fin: new Date("2025-09-01"),
-        presupuestoInicial: 1500,
-        cliente:  cliente._id,
-        
-        
-        desarrollador: "Ana Gómez"
-      },
-      cliente: cliente._id,
-      estadoDeCuenta: null
-    };
-    await db.collection('proyectos').insertOne(proyecto);
-
-    await db.collection('clientes').updateOne(
-      { _id: cliente._id },
-      { $push: { proyectos: proyecto._id } }
-    );
-
-    // Crear estado de cuenta
-    const estadoDeCuenta = {
-      _id: new ObjectId(),
-      IdCliente: cliente._id,
-      IdProyecto: proyecto._id,
-      deudaActual: 1500,
-      valorDisponible: 0,
-      abonos: [],
-      costos: [],
-      estado:true
-    };
-    await db.collection('estadoDeCuenta').insertOne(estadoDeCuenta);
-
-    await db.collection('proyectos').updateOne(
-      { _id: proyecto._id },
-      { $set: { estadoDeCuenta: estadoDeCuenta._id } }
-    );
+      ]
+    });
 
     console.log("✅ Datos iniciales insertados correctamente.");
   } catch (err) {
-    console.error("❌ Error insertando datos de prueba:", err.message,err);
+    console.error("❌ Error insertando datos de prueba:", err.message, err);
   } finally {
-    console.log("ok");
-    
-    
+    console.log("📦 Seed finalizado.");
   }
 }
 

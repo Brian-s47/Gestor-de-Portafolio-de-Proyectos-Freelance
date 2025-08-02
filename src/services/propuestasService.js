@@ -65,8 +65,30 @@ async function solictarDatosPropuesta(db) {
     };
 };
 // Crear Propuesta
-async function crearPropuesta(db) {
-    const datosPropuesta = await solictarDatosPropuesta(db);
+async function crearPropuesta(db, datosOpcionales = null) {
+    let datosPropuesta;
+
+    if (
+        datosOpcionales &&
+        datosOpcionales.nombre &&
+        datosOpcionales.descripcion &&
+        datosOpcionales.precio &&
+        datosOpcionales.fechaInicial &&
+        datosOpcionales.fechaFinal &&
+        datosOpcionales.clienteId
+    ) {
+        datosPropuesta = {
+            nombrepropuesta: datosOpcionales.nombre,
+            descripcion: datosOpcionales.descripcion,
+            precio: parseInt(datosOpcionales.precio),
+            fechaInicial: new Date(datosOpcionales.fechaInicial),
+            fechaFinal: new Date(datosOpcionales.fechaFinal),
+            estado: 'pendiente',
+            cliente: new ObjectId(datosOpcionales.clienteId)
+        };
+    } else {
+        datosPropuesta = await solictarDatosPropuesta(db);
+    }
 
     const propuesta = new Propuesta(
         datosPropuesta.nombrepropuesta,
@@ -74,7 +96,7 @@ async function crearPropuesta(db) {
         datosPropuesta.precio,
         datosPropuesta.fechaInicial,
         datosPropuesta.fechaFinal,
-        'pendiente',
+        datosPropuesta.estado,
         datosPropuesta.cliente
     );
 
@@ -83,22 +105,27 @@ async function crearPropuesta(db) {
     try {
         const resultado = await propuestas.insertOne(propuesta);
 
-        // ✅ Push al array de propuestas del cliente
+        // ✅ Relacionar con el cliente
         await db.collection('clientes').updateOne(
             { _id: propuesta.cliente },
             { $push: { propuestas: resultado.insertedId } }
         );
 
-        console.log('✅ Propuesta guardada en la base de datos con Nombre:', propuesta.nombrepropuesta);
-        await esperarTecla();
-        return resultado;
+        propuesta._id = resultado.insertedId; // 👈 aquí le inyectamos el ID generado
 
+        console.log('✅ Propuesta guardada con Nombre:', propuesta.nombrepropuesta);
+
+        return propuesta; // ✅ devolvemos la propuesta completa
     } catch (error) {
         console.error('❌ Error al insertar propuesta:', error.message);
-        await esperarTecla();
+        await esperarTecla?.();
         throw error;
     }
-};
+}
+
+
+
+
 // Listar Propuestas
 async function listarPropuestas(db){
     // Obtenermos las propuestas actuales
