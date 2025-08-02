@@ -7,8 +7,9 @@ import { ObjectId } from 'mongodb';
 
 // Zona de importacion de modulos
 import Proyecto from '../models/Proyecto.js';
+import Finanza from '../models/Finanza.js';
 import { esperarTecla }  from '../cli/menus.js';
-import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarFecha } from '../utils/validadores.js'
+import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarFecha, validarTextoObligatorio } from '../utils/validadores.js'
 
 // Funciones Especificas
 // Seleccion de propuesta Aceptada
@@ -20,7 +21,7 @@ async function eleccionPropuesta(db){
     if (propuestasAceptadas.length === 0) {
         console.log('⚠️ No hay propuestas aceptadas para convertir en proyecto.');
         await esperarTecla();
-        return;
+        return null;
     }
 
     //Que el usuario elija la propuesta que se convertira en proyecto y capturamos su Id
@@ -29,15 +30,13 @@ async function eleccionPropuesta(db){
         name: 'propuestaId',
         message: 'Seleccione la propuesta que desea convertir en proyecto:',
         choices: propuestasAceptadas.map(propuesta => ({
-            name: propuesta.nombre,
+            name: propuesta.nombrepropuesta,
             value: propuesta._id.toString()
         }))
     })
 
     // Obtenermos el objeto completo para embeberlo en el proyecto: 
-    const propuestaSeleccionada = propuestasAceptadas.find(p => p._id.toString() === propuestaId);
-    // Retornamos el objeo completo
-    return propuestaSeleccionada;
+    return propuestasAceptadas.find(p => p._id.toString() === propuestaId);
 };
 // Creacion de objeto contrato 
 async function crearContrato(cliente){
@@ -61,7 +60,6 @@ async function crearContrato(cliente){
             message: '¿Desea agregar otra condición?',
             default: true
         });
-        console.log(continuar);
         agregarMas = continuar;
     }
 
@@ -103,7 +101,7 @@ async function crearContrato(cliente){
         fecha_inicio: new Date(fecha_inicio),
         fecha_fin: new Date(fecha_fin),
         presupuestoInicial: parseInt(presupuestoInicial),
-        cliente, // embebido
+        cliente: cliente._id, // Referenciado
         desarrollador
     };
 
@@ -145,7 +143,7 @@ async function crearEntregable(){
         };
     return entregable;
 }
-// Seleccionar contrato
+// Seleccionar Proyecto
 async function seleccionarProyecto(db){
     // Traemos los proyectos con estado activo
     const proyectosActivos = await db.collection('proyectos').find({estado: { $in: ['activo', 'pausado']}}).toArray();
@@ -172,55 +170,99 @@ async function seleccionarProyecto(db){
 
 // Funciones de CRUD
 // Crear Proyecto
-async function crearProyecto(db){
+async function crearProyectoTransaccion(db){
+    // Creamos session para transaccion
+    const session = db.client.startSession();
 
-    // Usuario Elije propuesta que se convertira en objeto
-    const propuesta = await eleccionPropuesta(db);
-
-    // Usuario ingresa datos de: nombre y descripcion
-    const { nombre, descripcion} = await inquirer.prompt([
-        {
-            type: 'input',
-            name: 'nombre',
-            message: 'Nombre del Proyecto:',
-            validate: validarTextoNoVacioNiSimbolos
-        },
-        {
-            type: 'input',
-            name: 'descripcion',
-            message: 'Descripcion de la Propuesta:',
-        }
-    ]);
-
-    // Extraemos el cliente referenciado de la propuesta 
-    const clienteEmbebido = await db.collection('clientes').findOne({ _id: propuesta.cliente });
-    const clienteId = new ObjectId(clienteEmbebido._id);
-
-    // Creamos el contrato
-    const contrato = await crearContrato(clienteEmbebido)
-
-    // Instanciamos el proyecto
-    const nuevoProyecto = new Proyecto(
-        nombre,
-        descripcion,
-        propuesta,
-        [], // entregables
-        contrato,
-        clienteId
-    );
-
-    // Incertamos el proyecto en la coleccion corespondiente en db
+    //Iniciamos try/catch de trasaccion
     try {
-        await db.collection('proyectos').insertOne(nuevoProyecto);
-        console.log('✅ Proyecto guardada en la base de datos con Nombre:', nombre);
-    } catch (error) {
-        console.error('❌ Error al insertar Proyecto:', error.message);
-        throw error;
-    };
-    console.log('Se ha registrado el proyecto correctamente')
-    await esperarTecla();
-};
+        await session.withTransaction(async () => {
+            // Paso 1: Ususario alije propuesta "Aceptada" para subir a proyecto
+        const propuesta = await eleccionPropuesta(db);
+        if(!propuesta) return; // Caso de Error
 
+        // Paso 2: Usuario ingresa Nombre y descripcion del Proyecto
+        const { nombre, descripcion} = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'nombre',
+                message: 'Nombre del Proyecto:',
+                validate: validarTextoNoVacioNiSimbolos
+            },
+            {
+                type: 'input',
+                name: 'descripcion',
+                message: 'Descripcion de la Propuesta:',
+                validate: validarTextoObligatorio
+            }
+        ]);
+
+        // Paso 3: Obtener el cliente
+        const clienteEmbebido = await db.collection('clientes').findOne({ _id: propuesta.cliente });
+        const clienteId = new ObjectId(clienteEmbebido._id);
+
+        // Paso 4: Crear Contrato con funcion Externa
+        const contrato = await crearContrato(clienteEmbebido);
+        const presupuesto = contrato.presupuestoInicial; // Traemos el presupuesto para la estancia de Finanza
+
+        // Paso 5: Instanciamo Proyecto
+        const nuevoProyecto = new Proyecto(
+            nombre,
+            [descripcion],
+            propuesta,
+            [],
+            contrato,
+            clienteId,
+            null
+        );
+
+        // Paso 6: Insertamos proyecto en DB
+        const { insertedId: idProyecto } = await db.collection('proyectos').insertOne(
+            { 
+                ...nuevoProyecto, // todos los datos de Proyecto
+                estadoDeCuenta: null // temporalmente null, para que cumpla el schema
+            },
+            { session }
+        );
+
+        // Paso 7: Instanciamos finanzas para este proyecto
+        const nuevaFinanza = new Finanza({
+            idCliente: clienteId,
+            idProyecto,
+            deudaActual: presupuesto,
+            valorDisponible: 0
+        });
+
+        // Paso 8: Insertamos finaanzas en DB
+        const { insertedId: idFinanza } = await db.collection('finanzas').insertOne(nuevaFinanza, { session });
+
+        // Paso 9: Actualizamos finanza referenciada en proyecto
+        await db.collection('proyectos').updateOne(
+            { _id: idProyecto },
+            { $set: { estadoDeCuenta: idFinanza } },
+            { session }
+        );
+        // Si todo sale bien imprimimos en consola
+        console.log(`Se crea el Proyecto ${nombre}`)
+        // Paso 10: Asociar el ID del proyecto al cliente (agregar al array de proyectos)
+        await db.collection('clientes').updateOne(
+            { _id: clienteId },
+            { $push: { proyectos: idProyecto } },
+            { session } // importante: mantener en la misma transacción
+        );
+    });
+    await session.endSession(); // Finalizamos Session        
+    }catch (error) {
+        console.error('❌ Error en la transacción:', error.message);
+        if (error.errInfo?.details) {
+            console.dir(error.errInfo.details, { depth: null });
+        }
+    await esperarTecla();
+    } finally {
+        await session.endSession();
+        await esperarTecla()
+    }
+};
 // Insertar Entregable
 async function insertarEntregables(id, db){
     // inicializamos variables para condiciones y bandera de ciclo while
@@ -247,7 +289,6 @@ async function insertarEntregables(id, db){
     console.log('Se ha registrado el entregable correctamente')
     await esperarTecla();
 };
-
 // Actualizar estado
 async function actualizarEstado(id, db){
     const { nuevoEstado } = await inquirer.prompt([
@@ -266,7 +307,6 @@ async function actualizarEstado(id, db){
     console.log('Se ha acctualizado el estado correctamente')
     await esperarTecla();
 };
-
 // Actualizar Fecha Final
 async function actualizarFechaFinal(id, db){
     const { fechaFin } = await inquirer.prompt([
@@ -280,13 +320,66 @@ async function actualizarFechaFinal(id, db){
     // Cambiamos Fecha final segun ID en coleccion
     await db.collection('proyectos').updateOne(
         { _id: new ObjectId(id) },
-        { $set: { 'contrato.fecha_fin': new Date(fechaFin) } }
+        { $set: { 'contratos.fecha_fin': new Date(fechaFin) } }
     );
     console.log('Se ha actualizado la fecha final correctamente')
     await esperarTecla();
 };
+// Actualizar Entregables
+async function actualizarEntregables(id, db){
+    const proyecto = await db.collection('proyectos').findOne({ _id: new ObjectId(id) });
 
-// Listar Propuestas
+    if (!proyecto || !proyecto.entregables || proyecto.entregables.length === 0) {
+        console.log('⚠️ Este proyecto no tiene entregables registrados.');
+        await esperarTecla();
+        return;
+    }
+
+    const { indexEntregable } = await inquirer.prompt({
+        type: 'list',
+        name: 'indexEntregable',
+        message: 'Seleccione el entregable a editar:',
+        choices: proyecto.entregables.map((entregable, index) => ({
+            name: `${index + 1}. ${entregable.descripcion}`,
+            value: index
+        }))
+    });
+
+    const { campoActualizar } = await inquirer.prompt({
+        type: 'list',
+        name: 'campoActualizar',
+        message: '¿Qué desea actualizar?',
+        choices: ['estado', 'link']
+    });
+
+    let updateValue;
+    if (campoActualizar === 'estado') {
+        const { nuevoEstado } = await inquirer.prompt({
+            type: 'list',
+            name: 'nuevoEstado',
+            message: 'Seleccione el nuevo estado:',
+            choices: ['pendiente', 'entregado', 'aprobado', 'rechazado']
+        });
+        updateValue = { [`entregables.${indexEntregable}.estado`]: nuevoEstado };
+    } else {
+        const { nuevoLink } = await inquirer.prompt({
+            type: 'input',
+            name: 'nuevoLink',
+            message: 'Ingrese el nuevo enlace de evidencia:',
+            validate: input => input.trim() !== '' ? true : '⚠️ El enlace no puede estar vacío.'
+        });
+        updateValue = { [`entregables.${indexEntregable}.link`]: nuevoLink };
+    }
+
+    await db.collection('proyectos').updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateValue }
+    );
+
+    console.log('✅ Entregable actualizado correctamente.');
+    await esperarTecla();
+};
+// Listar Proyectos
 async function listarProyectos(db) {
     const proyectos = await db.collection('proyectos').find().toArray();
 
@@ -306,16 +399,23 @@ async function listarProyectos(db) {
     }));
     const linea = chalk.gray('────────────────────────────────────────────');
 
+    // Obtener todos los clientes una vez para evitar múltiples consultas
+    const clientes = await db.collection('clientes').find().toArray();
+
     const proyectosVisibles = proyectos.map((proyecto) => {
         const propuesta = proyecto.propuesta || {};
-        const contrato = proyecto.contrato || {};
+        const contrato = proyecto.contratos || {};
 
-        const fechaInicio = dayjs(contrato.fecha_inicio).format('DD/MM/YYYY');
-        const fechaFin = dayjs(contrato.fecha_fin).format('DD/MM/YYYY');
+        const clienteId = contrato.cliente?.$oid || contrato.cliente || proyecto.cliente?.$oid || proyecto.cliente;
+        const clienteEncontrado = clientes.find(c => c._id.toString() === clienteId?.toString());
+        const clienteNombre = clienteEncontrado?.nombre || 'Desconocido';
+
+        const fechaInicio = contrato.fecha_inicio ? dayjs(contrato.fecha_inicio).format('DD/MM/YYYY') : 'N/D';
+        const fechaFin = contrato.fecha_fin ? dayjs(contrato.fecha_fin).format('DD/MM/YYYY') : 'N/D';
 
         return {
             Proyecto: proyecto.nombredelproyecto,
-            Cliente: contrato.cliente?.nombre || "Desconocido",
+            Cliente: clienteNombre,
             Propuesta: propuesta.nombrepropuesta || propuesta.nombre || "Sin nombre",
             Precio: propuesta.precio || "No definido",
             Plazo: `${fechaInicio} - ${fechaFin}`,
@@ -328,6 +428,94 @@ async function listarProyectos(db) {
     console.table(proyectosVisibles);
     console.log(linea);
     await esperarTecla();
+};
+// Listar Proyectos de un cliente
+async function listarProyectosCliente(db, idCliente){
+    // Traemos todos los proyectos Actuales del cliente
+    const proyectos = await db.collection('proyectos').find({cliente: idCliente}).toArray();
+
+    // Validacion de que si se tengan proyectos registrados al cliente
+    if (proyectos.length === 0) {
+        console.log(`⚠️ No se tienen Proyectos registrados actualmente`);
+        await esperarTecla();
+        return;
+    }
+
+    //Titulo de la visual de la tabla de proyectos
+    const titulo = chalk.bold.cyan('📋 Listado de Proyectos');
+    console.log(boxen(titulo, {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'round',
+        borderColor: 'green',
+        align: 'center'
+    }));
+
+    const linea = chalk.gray('────────────────────────────────────────────');
+
+    // Obtenemos todos los clientes una vez para asociar por ID
+    const clientes = await db.collection('clientes').find().toArray();
+
+    const proyectosVisibles = proyectos.map((proyecto) => {
+        const propuesta = proyecto.propuesta || {};
+        const contrato = proyecto.contratos || {};
+
+        const clienteId = contrato.cliente?.$oid || contrato.cliente || proyecto.cliente?.$oid || proyecto.cliente;
+        const clienteEncontrado = clientes.find(c => c._id.toString() === clienteId?.toString());
+        const clienteNombre = clienteEncontrado?.nombre || "Desconocido";
+
+        const fechaInicio = contrato.fecha_inicio ? dayjs(contrato.fecha_inicio).format('DD/MM/YYYY') : 'N/D';
+        const fechaFin = contrato.fecha_fin ? dayjs(contrato.fecha_fin).format('DD/MM/YYYY') : 'N/D';
+
+        return {
+            Proyecto: proyecto.nombredelproyecto,
+            Cliente: clienteNombre,
+            Propuesta: propuesta.nombrepropuesta || propuesta.nombre || "Sin nombre",
+            Precio: propuesta.precio || "No definido",
+            Plazo: `${fechaInicio} - ${fechaFin}`,
+            Estado: proyecto.estado,
+            Presupuesto: contrato.presupuestoInicial || "No definido",
+            Desarrollador: contrato.desarrollador || "Sin asignar",
+            Entregables: proyecto.entregables?.length || 0
+        };
+    });
+
+    // Imprimir tabla general
+    console.table(proyectosVisibles);
+    console.log(linea);
+
+    // Preguntar si desea ver detalle de entregables
+    const { verDetalle } = await inquirer.prompt({
+        type: 'confirm',
+        name: 'verDetalle',
+        message: '¿Desea ver el detalle de entregables de cada proyecto?',
+        default: false
+    });
+
+    if (verDetalle) {
+        for (const proyecto of proyectos) {
+            const entregables = proyecto.entregables || [];
+
+            console.log(chalk.bold.yellow(`📦 Entregables del proyecto: ${proyecto.nombredelproyecto}`));
+
+            if (entregables.length === 0) {
+                console.log('⚠️ No hay entregables registrados para este proyecto.\n');
+                continue;
+            }
+
+            const tablaEntregables = entregables.map((ent, index) => ({
+                Nº: index + 1,
+                Descripción: ent.descripcion,
+                Fecha: dayjs(ent.fechadeentrega).format('DD/MM/YYYY'),
+                Estado: ent.estado,
+                Link: ent.link || 'Sin link'
+            }));
+
+            console.table(tablaEntregables);
+        }
+    }
+
+    await esperarTecla();
 }
 
-export { seleccionarProyecto, crearProyecto, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos };
+export { seleccionarProyecto, crearProyectoTransaccion, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, listarProyectosCliente, actualizarEntregables };

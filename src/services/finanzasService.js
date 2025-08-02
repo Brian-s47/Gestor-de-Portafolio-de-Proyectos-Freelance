@@ -167,5 +167,4 @@ export async function agregarCosto(collection, idProyecto, costo) {
 
 
 
-
     

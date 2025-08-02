@@ -1,5 +1,4 @@
 import { gestorFinanzas, esperarTecla } from '../../cli/menus.js';
-import { listarClientes } from '../../services/clientesService.js';
 import { registrarAbono, agregarCosto, listarFinanzas, obtenerFinanzas } from '../../services/finanzasService.js';
 import inquirer from 'inquirer';
 

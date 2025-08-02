@@ -204,7 +204,8 @@ async function actualizacionProyectos() {
         { name: chalk.green('1. Agregar Entregables'), value: '1' },
         { name: chalk.blue('2. Actualizar estado'), value: '2' },
         { name: chalk.blue('3. Actualizar Fecha Final'), value: '3' },
-        { name: chalk.gray('4. Volver al menu anterior'), value: '4' }
+        { name: chalk.blue('4. Actualizar Entregables'), value: '4' },
+        { name: chalk.gray('5. Volver al menu anterior'), value: '5' }
       ]
     }
   ]);
