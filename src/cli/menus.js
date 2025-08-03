@@ -4,13 +4,15 @@ import chalk from 'chalk' // Para dar colores a los mensajes y opciones
 import boxen from 'boxen' // Para encerrar los menus en cajas 
 import { obtenerFinanzas } from '../services/finanzasService.js'
 
+
 // Zona de importacion de modulos
 
 // Zona de Menus
 // Menu principal
 async function menuPrincipal() {
+  
   console.clear() // Borrar consola para mejor visualizacion
-  const titulo = chalk.bold.cyan('📋 Menu Principal Gestor de Portafoliom de Proyectos Freelance"') 
+  const titulo = chalk.bold.cyan('📋 Menu Principal de PORTAFIX') 
   const linea = chalk.gray('────────────────────────────────────────────')
   console.log(boxen(titulo, {
     padding: 1,

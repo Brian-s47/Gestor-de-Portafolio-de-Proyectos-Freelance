@@ -9,10 +9,12 @@ import {gestionCliente} from './src/controllers/clienteControler.js';
 import loginCliente from './src/services/loginCliente.js';
 import loginAdmin from './src/services/loginAdmin.js';
 import { log } from 'console';
+import portafixLogo from './src/utils/portafixLogo.js'
 
 // Codigo principal de ejecucion:
 
 async function main() {
+  await portafixLogo() //comentar para acceder de una vez al menu prinipal sin logo
   let salir = false;
   const db = await obtenerDB();
 
