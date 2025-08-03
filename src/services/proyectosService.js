@@ -10,6 +10,7 @@ import Proyecto from '../models/Proyecto.js';
 import Finanza from '../models/Finanza.js';
 import { esperarTecla }  from '../cli/menus.js';
 import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarFecha, validarTextoObligatorio } from '../utils/validadores.js'
+import { AgregarDeudaCliente } from './clientesService.js';
 
 // Funciones Especificas
 // Seleccion de propuesta Aceptada
@@ -230,11 +231,15 @@ async function crearProyectoTransaccion(db){
             idCliente: clienteId,
             idProyecto,
             deudaActual: presupuesto,
-            valorDisponible: 0
+            valorDisponible: 0,
+            abonos: [],
+            costos: [],
+            estado: true
         });
 
-        // Paso 8: Insertamos finaanzas en DB
-        const { insertedId: idFinanza } = await db.collection('finanzas').insertOne(nuevaFinanza, { session });
+        // Paso 8: Insertamos finanzas en DB
+        const { insertedId: idFinanza } = await db.collection('estadoDeCuenta').insertOne(nuevaFinanza, { session });
+        await AgregarDeudaCliente(clienteId, presupuesto, db, session); // Actualizamos la deuda del cliente
 
         // Paso 9: Actualizamos finanza referenciada en proyecto
         await db.collection('proyectos').updateOne(
@@ -250,8 +255,7 @@ async function crearProyectoTransaccion(db){
             { $push: { proyectos: idProyecto } },
             { session } // importante: mantener en la misma transacción
         );
-    });
-    await session.endSession(); // Finalizamos Session        
+    });    
     }catch (error) {
         console.error('❌ Error en la transacción:', error.message);
         if (error.errInfo?.details) {

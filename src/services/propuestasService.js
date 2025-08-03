@@ -189,6 +189,50 @@ async function listarPropuestasCliente(db, idCliente){
         await esperarTecla();
     }
 };
+async function actualizarClientePropuesta(db, idPropuesta, nuevoClienteId) {
+    const session = db.client.startSession();
+
+    try {
+        await session.withTransaction(async () => {
+            // traemos las colecciones necesarias
+            const propuestasCol = db.collection('propuestas');
+            const clientesCol = db.collection('clientes');
+            // buscamos la propuesta a modifficar y capturamos en casio de no poder recibirla
+            const propuesta = await propuestasCol.findOne({ _id: new ObjectId(idPropuesta) }, { session });
+            if (!propuesta) throw new Error('Propuesta no encontrada');
+
+            const clienteAnteriorId = propuesta.cliente;
+
+            // Paso 1. Actualizar propuesta
+            await propuestasCol.updateOne(
+                { _id: new ObjectId(idPropuesta) },
+                { $set: { cliente: new ObjectId(nuevoClienteId) } },
+                { session }
+            );
+
+            // Paso 2. Quitar propuesta del cliente anterior
+            await clientesCol.updateOne(
+                { _id: new ObjectId(clienteAnteriorId) },
+                { $pull: { propuestas: new ObjectId(idPropuesta) } },
+                { session }
+            );
+
+            // Paso 3. Agregar propuesta al nuevo cliente
+            await clientesCol.updateOne(
+                { _id: new ObjectId(nuevoClienteId) },
+                { $addToSet: { propuestas: new ObjectId(idPropuesta) } },
+                { session }
+            );
+        });
+
+        console.log('✅ Cliente de la propuesta actualizado correctamente (transacción realizada)');
+    } catch (error) {
+        console.error('❌ Error al actualizar cliente de propuesta:', error.message);
+    } finally {
+        await session.endSession();
+    }
+}
+
 // Modificar Propuesta
 async function modifiarPropuesta(db){
     // Obtenermos las propuestas actuales
@@ -213,8 +257,7 @@ async function modifiarPropuesta(db){
         message: 'Seleccione el dato que desea editar:',
         choices: ['nombre', 'descripcion', 'precio', 'fechaInicial', 'fechafinal', 'cliente']
     }
-]);
-
+    ]);
     // Luego solicita el nuevo valor con validación dinámica según el atributo (solo si no es cliente)
     let datoNuevo;
     if (atributoCambiar !== 'cliente') {
@@ -323,12 +366,7 @@ async function modifiarPropuesta(db){
                     }))
                 });
 
-                await db.collection('propuestas').updateOne(
-                    { _id: new ObjectId(id) },
-                    { $set: { cliente: new ObjectId(clienteId) } }
-                );
-
-                console.log('✅ Se modificó correctamente el cliente asociado a la propuesta');
+                await actualizarClientePropuesta(db, id, clienteId);
                 break;
             }
         }
@@ -368,4 +406,4 @@ async function cambiarEstadoPropuesta(db){
     console.log( `Se realizo el cambio de estado de la propuesta a: ${nuevoEstado}` )
     await esperarTecla();
 };
-export { crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta, listarPropuestasCliente };
+export { crearPropuesta, modifiarPropuesta, listarPropuestas, cambiarEstadoPropuesta, listarPropuestasCliente, actualizarClientePropuesta  };

@@ -2,6 +2,7 @@
 import inquirer from 'inquirer' //  Para interaccion con el usuario
 import chalk from 'chalk' // Para dar colores a los mensajes y opciones
 import boxen from 'boxen' // Para encerrar los menus en cajas 
+import { obtenerFinanzas } from '../services/finanzasService.js'
 
 // Zona de importacion de modulos
 
@@ -95,9 +96,14 @@ async function gestorClientes() {
 }
 
 // Menu Gestion de Finanzas
-async function gestorFinanzas() {
+async function gestorFinanzas(db) {
   console.clear() // Borrar consola para mejor visualizacion
   const titulo = chalk.bold.cyan('👥 Menu Gestion de Finanzas') 
+  const deudas = await obtenerFinanzas(db); // Obtener finanzas con nombres de cliente/proyecto
+  const totalAdeudado = deudas.reduce((acc, f) => acc + f.deudaActual, 0);
+  const mostrarTotal = chalk.yellow(`📦 Deuda de proyectos: $${totalAdeudado}`);
+  const proyectosConDeuda = deudas.filter(f => f.deudaActual > 0).length;
+  const contarProyectos = chalk.red(`📊 Proyectos con saldo pendiente: ${proyectosConDeuda}`);
   const linea = chalk.gray('────────────────────────────────────────────')
   console.log(boxen(titulo, {
     padding: 1,
@@ -106,6 +112,8 @@ async function gestorFinanzas() {
     borderColor: 'green',
     align: 'center'
   }))
+  console.log(mostrarTotal)
+  console.log(contarProyectos)
   console.log(linea)
   const { opcion } = await inquirer.prompt([
     {

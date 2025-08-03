@@ -4,6 +4,7 @@ import { esperarTecla } from '../cli/menus.js';
 import Cliente from '../models/Cliente.js';
 import { ObjectId } from 'mongodb';
 import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarTelefono } from '../utils/validadores.js';
+import _ from 'lodash';
 
 
 /**
@@ -27,9 +28,9 @@ export async function crearCliente(data, collection) {
         }
 
         await collection.insertOne(cliente);
-        console.log('✅ Cliente creado:', cliente);
+        console.log('✅ Creado cliente con nombre: ', cliente.nombre);
     } catch (error) {
-        console.error('❌ Error al crear cliente:', error.message);
+        console.error('❌ Error al crear cliente:', error.message,error);
     }
 }
 
@@ -61,26 +62,26 @@ export async function listarClientes(collection) {
 // Listar Datos de cliente por Id
 export async function listarDatosCliente(db, idCliente) {
     try {
-      const cliente = await db.collection('clientes').findOne({ _id: new ObjectId(idCliente) });
-  
-      if (!cliente) {
+    const cliente = await db.collection('clientes').findOne({ _id: new ObjectId(idCliente) });
+
+    if (!cliente) {
         console.log(chalk.red(`❌ No se encontró un cliente con el ID proporcionado.`));
         await esperarTecla();
         return;
-      }
-  
-      // Mostrar cabecera con estilo
-      const titulo = chalk.bold.cyan('📋 Datos del Cliente');
-      console.log(boxen(titulo, {
+    }
+
+    // Mostrar cabecera con estilo
+    const titulo = chalk.bold.cyan('📋 Datos del Cliente');
+    console.log(boxen(titulo, {
         padding: 1,
         margin: 1,
         borderStyle: 'round',
         borderColor: 'green',
         align: 'center'
-      }));
-  
-      // Mostrar los datos del cliente
-      const datosCliente = {
+    }));
+
+    // Mostrar los datos del cliente
+    const datosCliente = {
         Nombre: cliente.nombre,
         Cédula: cliente.cedula,
         Teléfono: cliente.telefono,
@@ -90,13 +91,13 @@ export async function listarDatosCliente(db, idCliente) {
         Propuestas: cliente.propuestas.length,
         Proyectos: cliente.proyectos.length,
         Deuda: `$ ${cliente.deuda ?? 0}`,
-      };
-  
-      console.table(datosCliente);
-      await esperarTecla();
+    };
+
+    console.table(datosCliente);
+    await esperarTecla();
     } catch (error) {
-      console.log(chalk.red('❌ Error al consultar los datos del cliente:'), error.message);
-      await esperarTecla();
+        console.log(chalk.red('❌ Error al consultar los datos del cliente:'), error.message);
+    await esperarTecla();
     }
 };
 /**
@@ -173,4 +174,67 @@ export async function cambiarEstadoCliente(id, nuevoEstado, collection) {
     } catch (error) {
         console.error('❌ Error al cambiar estado del cliente:', error.message);
     }
+}
+
+
+export async function AgregarDeudaCliente(idCliente, deuda, db, session = null) {
+    try {
+        // Validar deuda
+        if (typeof deuda !== 'number' || deuda <= 0) {
+            throw new Error('La deuda debe ser un número positivo.');
+        }
+
+        // Opciones para pasar a Mongo: con o sin sesión
+        const options = session ? { session } : {};
+
+        // Buscar el cliente
+        const cliente = await db.collection('clientes').findOne(
+            { _id: new ObjectId(idCliente) },
+            options
+        );
+        if (!cliente) {
+            throw new Error('Cliente no encontrado.');
+        }
+
+        // Actualizar la deuda
+        await db.collection('clientes').updateOne(
+            { _id: new ObjectId(idCliente) },
+            { $inc: { deuda: deuda } },
+            options
+        );
+
+        console.log(`✅ Deuda de $${deuda} agregada al cliente ${cliente.nombre}.`);
+    } catch (error) {
+        console.error('❌ Error al agregar deuda al cliente:', error.message);
+        throw error; // importante si se usa dentro de una transacción
+    }
+}
+
+
+export async function abonoCliente(collection,idCliente,monto,pago){
+
+    try {
+        const cliente = await collection.findOne({ _id: new ObjectId(idCliente) });
+        if (!cliente) {
+            throw new Error('❌ Cliente no encontrado.');
+        }
+
+        // Actualizar deuda del cliente
+        const nuevaDeuda = Math.max(0, cliente.deuda - monto);
+        await collection.updateOne(
+            { _id: new ObjectId(idCliente) },
+            {
+                $set: { deuda: nuevaDeuda },
+                $push: { pagos: pago }
+            }
+        );
+
+        console.log(`✅ Abono de $${monto} registrado para el cliente ${cliente.nombre}. Nueva deuda: $${nuevaDeuda}`);
+        
+    } catch (error) {
+        console.error('❌ Error al registrar abono del cliente:', error.message);
+        
+    }
+
+
 }
