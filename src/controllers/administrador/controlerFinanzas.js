@@ -1,6 +1,8 @@
 import { gestorFinanzas, esperarTecla } from '../../cli/menus.js';
 import { registrarAbono, agregarCosto, listarFinanzas, obtenerFinanzas } from '../../services/finanzasService.js';
 import inquirer from 'inquirer';
+import chalk from 'chalk';
+import { ObjectId } from 'mongodb';
 
 async function controlerFinanzas(db) {
     let salir = false;
@@ -111,8 +113,28 @@ async function controlerFinanzas(db) {
                 });
                 await esperarTecla();
                 break;
-
             case '4':
+                const finanzas = await obtenerFinanzas(db);
+                const idClientesUnicosStr = [...new Set(finanzas.map(f => f.idCliente.toString()))];
+
+                for (const idStr of idClientesUnicosStr) {
+                    const idCliente = new ObjectId(idStr);
+                    const cliente = await db.collection('clientes').findOne({ _id: idCliente });
+                    if (cliente) {
+                        console.log(
+                            chalk.blueBright(`Cliente: ${cliente.nombre}`) +
+                            chalk.yellow(` | Deuda total: $${cliente.deuda ?? 0}`)
+                        );
+                    } else {
+                        console.log(chalk.red(`No se encontró el cliente con id ${idCliente}`));
+                    }
+                }
+
+                await esperarTecla();
+
+                
+
+            case '5':
                 salir = true;
                 console.clear();
                 console.log('🔙 Volviendo al menú anterior...');

@@ -107,10 +107,11 @@ async function crearContrato(cliente){
     };
 
 };
+//Funcion editada de aqui a 
 // Crear Entregable
 async function crearEntregable(){
     
-    const { descripcion, fechaDeEntrega, estado, link } = await inquirer.prompt([
+    const { descripcion, fechadeentrega, estado, link } = await inquirer.prompt([
         {
             type: 'input',
             name: 'descripcion',
@@ -127,7 +128,7 @@ async function crearEntregable(){
             type: 'list',
             name: 'estado',
             message: 'Seleccione el estado del entregable',
-            choices: ['pendiente', 'completado']
+            choices: ["pendiente", "entregado", "aprobado", "rechazado"] //modificada esta linea , antes estaba esto:['pendiente', 'completado']
         },
         {
             type: 'input',
@@ -138,12 +139,14 @@ async function crearEntregable(){
     ]);
         const entregable = {
             descripcion,
-            fechadeentrega: new Date(fechaDeEntrega),
+            fechadeentrega: new Date(fechadeentrega),
             estado: estado,
             link: link
         };
     return entregable;
 }
+//aqui
+
 // Seleccionar Proyecto
 async function seleccionarProyecto(db){
     // Traemos los proyectos con estado activo
@@ -267,32 +270,24 @@ async function crearProyectoTransaccion(db){
         await esperarTecla()
     }
 };
-// Insertar Entregable
-async function insertarEntregables(id, db){
-    // inicializamos variables para condiciones y bandera de ciclo while
-    const entregables = [];
-    let agregarOtro = true; // Bandera
+// modificacion de codigo aqui
+// Insertar Entregable 
+async function insertarEntregables(id, db) {
+    const entregable = await crearEntregable();
 
-    while (agregarOtro) {
-        const entregable = await crearEntregable();
-        entregables.push(entregable);
-
-        const { continuar } = await inquirer.prompt({
-        type: 'confirm',
-        name: 'continuar',
-        message: '¿Desea agregar otro entregable?',
-        default: false
-    });
-        agregarOtro = continuar;
-    }
-    // Insertamos los entregables en el contrato
     await db.collection('proyectos').updateOne(
         { _id: new ObjectId(id) },
-        { $set: { entregables } }
+        { $push: { entregables: entregable } }
     );
-    console.log('Se ha registrado el entregable correctamente')
+
+    console.log('Se ha registrado el entregable correctamente');
     await esperarTecla();
-};
+}
+
+// modificacion de codigo antes de aqui
+
+
+
 // Actualizar estado
 async function actualizarEstado(id, db){
     const { nuevoEstado } = await inquirer.prompt([
