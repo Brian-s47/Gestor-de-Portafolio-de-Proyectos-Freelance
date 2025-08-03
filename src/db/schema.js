@@ -47,7 +47,7 @@ export default async function crearColeccionesConEsquema() {
                   fecha: { bsonType: "date", description: "Fecha de creación del cliente." },
                   propuestas: { bsonType: "array", items: { bsonType: "objectId" } },
                   proyectos: { bsonType: "array", items: { bsonType: "objectId" } },
-                  pagos: { bsonType: "array", items: { bsonType: "objectId" } },
+                  pagos: { bsonType: "array", items: { bsonType: "object" } },
                   deuda: { bsonType: "number", minimum: 0 },
                   estado:{bsonType: "bool"}
                 }
@@ -193,8 +193,8 @@ export default async function crearColeccionesConEsquema() {
                 bsonType: "object",
                 required: [
                   "_id",
-                  "IdCliente",
-                  "IdProyecto",
+                  "idCliente",
+                  "idProyecto",
                   "deudaActual",
                   "valorDisponible",
                   "abonos",
@@ -203,8 +203,8 @@ export default async function crearColeccionesConEsquema() {
                 ],
                 properties: {
                   _id: { bsonType: "objectId" },
-                  IdCliente: { bsonType: "objectId" },
-                  IdProyecto: { bsonType: "objectId" },
+                  idCliente: { bsonType: "objectId" },
+                  idProyecto: { bsonType: "objectId" },
                   deudaActual: { bsonType: "number", minimum: 0 },
                   valorDisponible: { bsonType: "number", minimum: 0 },
                   abonos: { bsonType: "array", items: {} },

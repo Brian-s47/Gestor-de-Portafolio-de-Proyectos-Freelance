@@ -1,5 +1,4 @@
 import { gestorFinanzas, esperarTecla } from '../../cli/menus.js';
-import { listarClientes } from '../../services/clientesService.js';
 import { registrarAbono, agregarCosto, listarFinanzas, obtenerFinanzas } from '../../services/finanzasService.js';
 import inquirer from 'inquirer';
 
@@ -10,7 +9,7 @@ async function controlerFinanzas(db) {
     console.clear();
 
     while (!salir) {
-        const opcion = await gestorFinanzas();
+        const opcion = await gestorFinanzas(db);
 
         switch (opcion) {
             case '1': // Listar estados de cuenta
@@ -70,7 +69,7 @@ async function controlerFinanzas(db) {
                     console.log(`🔁 Deuda restante: $${resultado.nuevaDeuda}`);
                     console.log(`📦 Estado actual: ${resultado.nuevoEstado ? 'Activo' : 'Pagado'}`);
                 } catch (error) {
-                    console.error('❌ Error al hacer el abono:', error.message);
+                    console.error('❌ Error al hacer el abono:', error.message,error);
                 }
 
                 await esperarTecla();
@@ -78,9 +77,9 @@ async function controlerFinanzas(db) {
 
             case '3': // Agregar egreso
                 console.clear();
-                const finanzasEgreso = await obtenerFinanzasActivasConNombres(collection);
+                const finanzasEgreso = (await obtenerFinanzas(db)).filter(f => f.valorDisponible > 0);
                 if (finanzasEgreso.length === 0) {
-                    console.log('⚠️ No hay estados de cuenta activos para agregar egresos.');
+                    console.log('⚠️ No hay estados de cuenta con saldo disponible para egresos..');
                     await esperarTecla();
                     break;
                 }
@@ -91,7 +90,7 @@ async function controlerFinanzas(db) {
                         name: 'seleccionEgreso',
                         message: 'Seleccione un estado de cuenta activo:',
                         choices: finanzasEgreso.map((f, i) => ({
-                            name: `${f.nombreCliente} - ${f.nombreProyecto} (Deuda: $${f.deudaActual})`,
+                            name: `${f.nombreCliente} - ${f.nombreProyecto} (Deuda: $${f.deudaActual}, Disponible: $${f.valorDisponible})`,
                             value: f.idProyecto
                         }))
                     }
@@ -121,7 +120,7 @@ async function controlerFinanzas(db) {
         }
     }
 
-    client.close();
 }
 
 export { controlerFinanzas };
+
