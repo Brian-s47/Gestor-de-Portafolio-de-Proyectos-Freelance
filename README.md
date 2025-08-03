@@ -212,4 +212,4 @@ como parte del curso de Desarrollo Backend con Node.js.
 
 ## 📹 Video de Presentación
 
-🔗 *[Por agregar en etapas futuras]*
+https://www.youtube.com/watch?v=93fsyNfHxU0
