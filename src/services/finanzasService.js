@@ -2,6 +2,7 @@ import Finanzas from '../models/Finanza.js';
 import { ObjectId } from 'mongodb';
 import dayjs from 'dayjs';
 import { abonoCliente } from './clientesService.js';
+import { generarFacturaTXT, generarFacturaCostoTXT  } from '../utils/generarFactura.js';
 
 
 export async function crearFinanza(data, collection) {
@@ -132,7 +133,15 @@ export async function registrarAbono(db, _id, monto, descripcion) {
             }
         }
     );
-
+    // Generar factura después de abonar
+    const cliente = await colecctionClientes.findOne({ _id: new ObjectId(finanza.idCliente) });
+    const nombreCliente = cliente?.nombre || finanza.idCliente;
+    generarFacturaTXT({
+        cliente: nombreCliente,
+        proyecto: finanza.idProyecto, // o mejor el nombre si lo tienes
+        monto,
+        descripcion
+    });
     return {
         monto,
         nuevaDeuda,
@@ -169,7 +178,18 @@ export async function agregarCosto(collection, idProyecto, costo) {
             }
         }
     );
-
+    // Generar factura después de egreso
+    const collectionClientes = db.collection('clientes');
+    const cliente = await collectionClientes.findOne({ _id: new ObjectId(finanza.idCliente) });
+    const nombreCliente = cliente?.nombre || finanza.idCliente;
+    generarFacturaCostoTXT({
+        cliente: nombreCliente,
+        proyecto: finanza.idProyecto,
+        valor: costo.valor,
+        descripcion: costo.descripcion,
+        tipo: costo.tipo || 'General'
+    });
+    
     console.log(`✅ Egreso de $${costo.valor} agregado. Nuevo disponible: $${nuevoDisponible}`);
 }
 

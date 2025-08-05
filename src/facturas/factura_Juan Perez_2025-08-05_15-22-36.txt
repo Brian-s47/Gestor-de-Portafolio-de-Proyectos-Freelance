@@ -1,0 +1,13 @@
+===============================
+        FACTURA DE ABONO
+===============================
+Cliente: Juan Perez
+Proyecto: 688fa919369506c7bf6591c9
+Fecha: 05/08/2025 15:22
+Monto abonado: $400
+Medio de pago: No especificado
+Descripción: Primer Abono
+
+===============================
+    ¡Gracias por su pago!
+===============================
