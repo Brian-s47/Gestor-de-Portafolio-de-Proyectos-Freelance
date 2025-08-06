@@ -1,6 +1,6 @@
 // Zona de importacion de Modulos
 import {gestorProyectos, actualizacionProyectos} from '../../cli/menus.js';
-import {seleccionarProyecto, crearProyectoTransaccion, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, actualizarEntregables} from '../../services/proyectosService.js';
+import {seleccionarProyecto, crearProyectoTransaccion, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, actualizarEntregables, listarHistorial} from '../../services/proyectosService.js';
 
 // Zona de Funciones de servicios
 async function controlerProyectos(db) {
@@ -34,7 +34,11 @@ async function controlerProyectos(db) {
                     case '4': // Actualizar entregables
                     await actualizarEntregables(proyectoId, db);
                     break;
-                    case '5':
+                    case '5': // Actualizar entregables
+                    
+                    await listarHistorial(proyectoId, db);
+                    break;
+                    case '6':
                     console.log('🛠️ Esta volviendo al menu anterior "Menu Gestion de Proyectos" 🛠️');
                     salirP = true;
                     break;

@@ -12,6 +12,7 @@ import { esperarTecla }  from '../cli/menus.js';
 import { validarTextoNoVacioNiSimbolos, validarNumeroPositivo, validarFecha, validarTextoObligatorio } from '../utils/validadores.js'
 import { AgregarDeudaCliente } from './clientesService.js';
 
+
 // Funciones Especificas
 // Seleccion de propuesta Aceptada
 async function eleccionPropuesta(db){
@@ -135,13 +136,14 @@ async function crearEntregable(){
             name: 'link',
             message: 'Escriba el linck de la evidencia del entregable:',
             validate: input => input.trim() !== '' ? true : 'La descripción no puede estar vacía.'
-        },
+        }
     ]);
         const entregable = {
             descripcion,
             fechadeentrega: new Date(fechadeentrega),
             estado: estado,
-            link: link
+            link: link,
+            historial:[]
         };
     return entregable;
 }
@@ -280,8 +282,11 @@ async function insertarEntregables(id, db) {
         { $push: { entregables: entregable } }
     );
 
+
+
     console.log('Se ha registrado el entregable correctamente');
     await esperarTecla();
+
 }
 
 // modificacion de codigo antes de aqui
@@ -343,6 +348,7 @@ async function actualizarEntregables(id, db){
             value: index
         }))
     });
+    
 
     const { campoActualizar } = await inquirer.prompt({
         type: 'list',
@@ -352,14 +358,39 @@ async function actualizarEntregables(id, db){
     });
 
     let updateValue;
+    let updateHistorial
     if (campoActualizar === 'estado') {
+        
+        const estadoViejo = proyecto.entregables[indexEntregable].estado
+        console.log(estadoViejo)
+
         const { nuevoEstado } = await inquirer.prompt({
             type: 'list',
             name: 'nuevoEstado',
             message: 'Seleccione el nuevo estado:',
             choices: ['pendiente', 'entregado', 'aprobado', 'rechazado']
         });
+        const historialEstado= {estadoAnterior: estadoViejo, 
+            nuevoEstado: nuevoEstado, 
+            fecha: new Date()
+        }
+        updateHistorial = { [`entregables.${indexEntregable}.historial`]: historialEstado }
+        try {
+            await db.collection('proyectos').updateOne(
+                { _id: new ObjectId(id) },
+                { $push: updateHistorial }
+            );
+            
+        } catch (error) {
+            console.log(error, error.message)
+            
+        }
+
         updateValue = { [`entregables.${indexEntregable}.estado`]: nuevoEstado };
+
+        
+
+
     } else {
         const { nuevoLink } = await inquirer.prompt({
             type: 'input',
@@ -517,4 +548,41 @@ async function listarProyectosCliente(db, idCliente){
     await esperarTecla();
 }
 
-export { seleccionarProyecto, crearProyectoTransaccion, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, listarProyectosCliente, actualizarEntregables };
+async function listarHistorial(proyectoId,db){
+    const proyecto = await db.collection('proyectos').findOne({_id:new ObjectId(proyectoId)})
+    // Validacion que si existen Propuestas conese estado
+    if (proyecto.entregables.length === 0) {
+        console.log('⚠️ No hay propuestas entregables en este proyecto');
+        await esperarTecla();
+        return null;
+    }
+    const { entregableId } = await inquirer.prompt({
+        type: 'list',
+        name: 'entregableId',
+        message: 'Seleccione un entregable:',
+        choices: proyecto.entregables.map((e,index) => ({
+            name: e.descripcion,
+            value: index
+        }))
+    })
+    await listar(entregableId,db,proyectoId)
+    return 
+
+
+};
+
+async function listar(entregableId,db,proyectoId){
+    const proyecto = await db.collection('proyectos').findOne({_id:new ObjectId(proyectoId)})
+
+    
+    
+    const entregable = proyecto.entregables[entregableId]
+    const historial = entregable.historial
+    console.log(`Nombre: ${entregable.descripcion}`)
+    console.table(historial)
+    
+    await esperarTecla()
+
+}
+
+export { seleccionarProyecto, crearProyectoTransaccion, insertarEntregables, actualizarEstado, actualizarFechaFinal, listarProyectos, listarProyectosCliente, actualizarEntregables, listarHistorial };

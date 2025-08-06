@@ -135,7 +135,7 @@ export default async function crearColeccionesConEsquema() {
                     bsonType: "array",
                     items: {
                       bsonType: "object",
-                      required: ["descripcion", "fechadeentrega", "estado", "link"],
+                      required: ["descripcion", "fechadeentrega", "estado", "link","historial"],
                       properties: {
                         descripcion: { bsonType: "string" },
                         fechadeentrega: { bsonType: "date" },
@@ -145,7 +145,13 @@ export default async function crearColeccionesConEsquema() {
                         },
                         link: {
                           anyOf: [{ bsonType: "string" }, { bsonType: "null" }]
+                        },
+                        historial:{
+                          bsonType: "array",
+                          items: { bsonType: "object" },
                         }
+                          
+                        
                       }
                     }
                   },

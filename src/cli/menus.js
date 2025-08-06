@@ -186,7 +186,8 @@ async function gestorProyectos() {
         { name: chalk.green('1. Crear Proyecto'), value: '1' },
         { name: chalk.blue('2. Listar Proyectos'), value: '2' },
         { name: chalk.blue('3. Actualizar Proyectos'), value: '3' },
-        { name: chalk.gray('4. Volver al menu anterior'), value: '4' }
+        { name: chalk.gray('4. Volver al menu anterior'), value: '4' },
+        
       ]
     }
   ]);
@@ -216,7 +217,8 @@ async function actualizacionProyectos() {
         { name: chalk.blue('2. Actualizar estado'), value: '2' },
         { name: chalk.blue('3. Actualizar Fecha Final'), value: '3' },
         { name: chalk.blue('4. Actualizar Entregables'), value: '4' },
-        { name: chalk.gray('5. Volver al menu anterior'), value: '5' }
+        { name: chalk.blue('5. Listar Historial de Entregables'), value: '5' },
+        { name: chalk.gray('6. Volver al menu anterior'), value: '6' }
       ]
     }
   ]);

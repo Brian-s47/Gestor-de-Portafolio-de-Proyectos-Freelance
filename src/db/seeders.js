@@ -56,7 +56,8 @@ async function seedDatabase() {
           descripcion: "Wireframes y estructura base del sitio",
           fechadeentrega: new Date("2025-08-10"),
           estado: "pendiente",
-          link: null
+          link: null,
+          historial:[]
         }
       ],
       estado: "activo",
